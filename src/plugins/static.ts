@@ -8,14 +8,29 @@ async function staticPlugin(fastify: FastifyInstance) {
   // Determinar la ruta de los archivos estáticos
   // En desarrollo: ../../public (desde src/plugins/)
   // En SEA bundle: ./public (relativo al ejecutable)
+  // En bundle directo: ../public (desde dist/)
   const isSEA = process.execPath.includes('sea-server') || process.execPath.endsWith('.exe');
-  const publicPath = isSEA
-    ? path.join(process.cwd(), 'public')  // Relativo al directorio del ejecutable
-    : path.join(__dirname, '../../public'); // Desde src/plugins/ en desarrollo
+  const isBundle = __dirname.includes('/dist') && !isSEA;
 
-  fastify.log.info(`Static files path: ${publicPath} (SEA: ${isSEA})`);
+  let publicPath: string;
+  if (isSEA) {
+    publicPath = path.join(process.cwd(), 'public');  // Relativo al directorio del ejecutable
+  } else if (isBundle) {
+    publicPath = path.join(__dirname, '../public');   // Desde dist/ en bundle directo
+  } else {
+    publicPath = path.join(__dirname, '../../public'); // Desde src/plugins/ en desarrollo
+  }
 
-  // Servir archivos estáticos de React desde la raíz de public/
+  fastify.log.info(`Static files path: ${publicPath} (SEA: ${isSEA}, Bundle: ${isBundle})`);
+  fastify.log.info(`Current working directory: ${process.cwd()}`);
+  fastify.log.info(`__dirname: ${__dirname}`);
+  fastify.log.info(`process.execPath: ${process.execPath}`);
+
+  // Verificar si el directorio existe
+  if (!fs.existsSync(publicPath)) {
+    fastify.log.error(`Static directory does not exist: ${publicPath}`);
+    throw new Error(`Static directory not found: ${publicPath}`);
+  }
   await fastify.register(fastifyStatic, {
     root: publicPath,
     prefix: '/',
