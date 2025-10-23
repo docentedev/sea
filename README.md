@@ -18,6 +18,8 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 
 - ✅ **Full-Stack Application**: Frontend React 19 + Backend Fastify
 - ✅ **Base de datos SQLite**: Gestión de usuarios y roles para NAS
+- ✅ **Sistema de autenticación**: JWT con roles y permisos
+- ✅ **Gestión de usuarios**: CRUD completo con autorización de admin
 - ✅ **Single Executable**: Aplicación standalone (108.66 MB)
 - ✅ **Arquitectura limpia**: Servicios, repositorios y controladores
 - ✅ **SPA Routing**: React Router con Wouter
@@ -33,6 +35,12 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - `GET /api/health` - Estado del sistema y base de datos
 - `GET /api/info` - Información del sistema y proceso
 - `GET /api/time` - Timestamp actual
+- `POST /api/login` - Autenticación de usuario (JWT)
+- `POST /api/users` - Crear usuario (requiere admin)
+- `GET /api/users` - Listar usuarios con paginación (requiere admin)
+- `GET /api/users/:id` - Obtener usuario específico (requiere admin)
+- `PUT /api/users/:id` - Actualizar usuario (requiere admin)
+- `DELETE /api/users/:id` - Eliminar usuario (requiere admin)
 
 ### Frontend Routes
 - `GET /` - Página de inicio
@@ -397,6 +405,36 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
   - Detección automática del modo SEA
 
 ## 📝 Changelog
+
+### [2.1.0] - 2025-10-23
+#### ✨ Added
+- **Sistema de autenticación JWT**: Endpoint `/api/login` con tokens JWT
+- **UserController completo**: CRUD operations para gestión de usuarios
+- **Autorización basada en roles**: Middleware de admin para operaciones de usuario
+- **AuthService**: Servicio de autenticación con generación y validación de tokens
+- **UserService y UserRepository**: Lógica de negocio para gestión de usuarios
+- **Roles y permisos**: Sistema de roles (admin, user, guest) con permisos granulares
+- **Endpoints de usuario**: 
+  - `POST /api/users` - Crear usuario (admin only)
+  - `GET /api/users` - Listar usuarios con paginación (admin only)
+  - `GET /api/users/:id` - Obtener usuario específico (admin only)
+  - `PUT /api/users/:id` - Actualizar usuario (admin only)
+  - `DELETE /api/users/:id` - Eliminar usuario (admin only)
+- **Middleware de seguridad**: Verificación de autenticación y permisos de admin
+- **Validación de datos**: Validación completa de entrada en todos los endpoints
+- **Gestión de cuotas**: Cuotas de almacenamiento por rol de usuario
+
+#### 🔧 Changed
+- **Configuración de usuarios**: Integración con sistema de configuración externa
+- **Base de datos**: Nuevas tablas y relaciones para roles y permisos
+- **API Endpoints**: Actualización de lista de endpoints disponibles
+- **Tipos TypeScript**: Nuevos tipos para autenticación y gestión de usuarios
+
+#### 🛡️ Security
+- **Autenticación JWT**: Implementación segura con expiración de tokens
+- **Autorización por roles**: Control de acceso basado en permisos
+- **Validación de entrada**: Prevención de datos maliciosos
+- **Protección de rutas**: Solo administradores pueden gestionar usuarios
 
 ### [2.0.0] - 2025-10-23
 #### ✨ Added
