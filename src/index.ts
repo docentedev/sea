@@ -50,7 +50,8 @@ async function buildServer() {
     reply.status(statusCode).send(errorResponse);
   });
 
-  // Hook para rutas no encontradas
+  // Hook para rutas no encontradas - ahora manejado por static plugin para SPA
+  /*
   fastify.setNotFoundHandler(async (request, reply) => {
     const notFoundResponse = {
       error: 'Not Found',
@@ -63,6 +64,7 @@ async function buildServer() {
 
     reply.status(404).send(notFoundResponse);
   });
+  */
 
   return fastify;
 }

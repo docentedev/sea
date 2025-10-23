@@ -3,17 +3,21 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 const homeRoutes: FastifyPluginAsync = async (fastify) => {
+  // Root path now handled by static plugin for React SPA
+  // Uncomment below if you want to revert to the original home page
+
+  /*
   fastify.get('/', async (request, reply) => {
     try {
       const htmlPath = join(process.cwd(), 'public', 'index.html');
       const html = await readFile(htmlPath, 'utf-8');
-      
+
       reply
         .type('text/html')
         .send(html);
     } catch (error) {
       fastify.log.error(error, 'Error serving home page');
-      
+
       // Fallback HTML si no se puede leer el archivo
       const fallbackHtml = `
         <!DOCTYPE html>
@@ -42,12 +46,13 @@ const homeRoutes: FastifyPluginAsync = async (fastify) => {
         </body>
         </html>
       `;
-      
+
       reply
         .type('text/html')
         .send(fallbackHtml);
     }
   });
+  */
 };
 
 export default homeRoutes;
