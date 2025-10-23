@@ -210,7 +210,69 @@ curl -X POST -H "Content-Type: application/json" \
 
 ## 🔧 Configuración
 
-La aplicación acepta las siguientes variables de entorno:
+### Archivo de Configuración Externa
+
+La aplicación lee su configuración desde un archivo `nas-cloud-config.json` ubicado al lado del ejecutable. Si no existe, usa configuración por defecto.
+
+#### Ubicación del Archivo de Configuración
+
+- **Desarrollo**: `./nas-cloud-config.json` (directorio del proyecto)
+- **SEA**: `nas-cloud-config.json` (al lado del ejecutable)
+
+#### Estructura del Archivo de Configuración
+
+```json
+{
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "trustProxy": false,
+    "logger": true
+  },
+  "database": {
+    "path": "./data/nas-cloud.db"
+  },
+  "users": {
+    "forceCreateInitial": false,
+    "initialUsers": [
+      {
+        "username": "admin",
+        "email": "admin@nas-cloud.local",
+        "password": "admin123",
+        "role": "admin",
+        "storageQuotaGb": 1000,
+        "forceUpdate": false
+      }
+    ]
+  },
+  "app": {
+    "name": "NAS Cloud",
+    "version": "2.0.0",
+    "description": "Personal Cloud Storage Solution"
+  }
+}
+```
+
+#### Configuración de Usuarios Iniciales
+
+- **`forceCreateInitial`**: Si es `true`, fuerza la creación/actualización de todos los usuarios iniciales
+- **`initialUsers`**: Array de usuarios a crear/actualizar al iniciar la aplicación
+- **`forceUpdate`**: Si es `true`, actualiza la contraseña del usuario aunque ya exista
+
+##### Recuperación de Contraseña
+
+Para resetear una contraseña olvidada:
+
+1. Edita `nas-cloud-config.json`
+2. Cambia `"forceCreateInitial": true`
+3. Actualiza la contraseña del usuario deseado
+4. Establece `"forceUpdate": true` para ese usuario
+5. Reinicia la aplicación
+6. La aplicación actualizará la contraseña y mostrará logs de confirmación
+
+#### Variables de Entorno
+
+También puedes usar variables de entorno (tienen prioridad sobre el archivo):
 
 - `PORT` - Puerto del servidor (default: 3000)
 - `HOST` - Host del servidor (default: 0.0.0.0)

@@ -1,8 +1,9 @@
 import { DatabaseSync } from 'node:sqlite';
 import { DatabaseConnection } from './connection.js';
-import { DB_SCHEMA, DEFAULT_ROLES, DEFAULT_USERS } from './schema.js';
+import { DB_SCHEMA, DEFAULT_ROLES } from './schema.js';
 import { RoleRepository } from '../repositories/RoleRepository.js';
 import { UserRepository } from '../repositories/UserRepository.js';
+import { usersConfig } from '../config/index.js';
 
 export class DatabaseInitializer {
   private db: DatabaseSync;
@@ -34,7 +35,7 @@ export class DatabaseInitializer {
 
   private seedDatabase(): void {
     const existingRoles = this.roleRepo.findAll();
-    
+
     if (existingRoles.length === 0) {
       // Seed roles
       for (const roleData of DEFAULT_ROLES) {
@@ -47,17 +48,59 @@ export class DatabaseInitializer {
           max_storage_gb: roleData.max_storage_gb
         });
       }
+      console.log('🌱 NAS Cloud database seeded with default roles');
+    }
 
-      // Seed users
-      for (const userData of DEFAULT_USERS) {
-        this.userRepo.create(userData);
+    // Seed initial users from config
+    this.seedInitialUsers();
+  }
+
+  private seedInitialUsers(): void {
+    const roles = this.roleRepo.findAll();
+    const roleMap = new Map(roles.map(role => [role.name, role.id]));
+
+    let usersCreated = 0;
+    let usersUpdated = 0;
+
+    for (const userConfig of usersConfig.initialUsers) {
+      try {
+        const existingUser = this.userRepo.findByUsername(userConfig.username);
+        const roleId = roleMap.get(userConfig.role);
+
+        if (!roleId) {
+          console.warn(`⚠️  Role '${userConfig.role}' not found for user '${userConfig.username}', skipping...`);
+          continue;
+        }
+
+        if (!existingUser) {
+          // Crear usuario si no existe
+          this.userRepo.create({
+            username: userConfig.username,
+            email: userConfig.email,
+            password_hash: userConfig.password, // En producción usar bcrypt
+            role_id: roleId,
+            storage_quota_gb: userConfig.storageQuotaGb
+          });
+          usersCreated++;
+          console.log(`👤 Created user: ${userConfig.username} (${userConfig.role})`);
+        } else if (userConfig.forceUpdate || usersConfig.forceCreateInitial) {
+          // Actualizar usuario si existe y se fuerza la actualización
+          this.userRepo.update(existingUser.id, {
+            email: userConfig.email,
+            password_hash: userConfig.password,
+            role_id: roleId,
+            storage_quota_gb: userConfig.storageQuotaGb
+          });
+          usersUpdated++;
+          console.log(`🔄 Updated user: ${userConfig.username} (${userConfig.role})`);
+        }
+      } catch (error) {
+        console.error(`❌ Error processing user ${userConfig.username}:`, error);
       }
+    }
 
-      console.log('🌱 NAS Cloud database seeded with default roles and users');
-      console.log('👤 Default users:');
-      console.log('   - admin / admin123 (Administrator)');
-      console.log('   - demo_user / user123 (User)');
-      console.log('   - guest / guest123 (Guest)');
+    if (usersCreated > 0 || usersUpdated > 0) {
+      console.log(`✅ Initial users processed: ${usersCreated} created, ${usersUpdated} updated`);
     }
   }
 }

@@ -1,15 +1,16 @@
 import { DatabaseSync } from 'node:sqlite';
-import { join } from 'path';
+import { join, dirname } from 'path';
 import { mkdirSync, existsSync } from 'fs';
+import { databaseConfig, isSEA } from '../config/index.js';
 
 export class DatabaseConnection {
   private static instance: DatabaseSync | null = null;
-  private static readonly DB_PATH = join(process.cwd(), 'data', 'nas-cloud.db');
+  private static dbPath: string;
 
   static getConnection(): DatabaseSync {
     if (!this.instance) {
       this.ensureDataDirectory();
-      this.instance = new DatabaseSync(this.DB_PATH);
+      this.instance = new DatabaseSync(this.dbPath);
       this.instance.exec('PRAGMA foreign_keys = ON');
       this.instance.exec('PRAGMA journal_mode = WAL');
     }
@@ -17,11 +18,28 @@ export class DatabaseConnection {
   }
 
   static getDbPath(): string {
-    return this.DB_PATH;
+    if (!this.dbPath) {
+      // Usar configuración del archivo, o ruta por defecto
+      const configPath = databaseConfig?.path || './data/nas-cloud.db';
+
+      // Si es una ruta relativa y estamos en SEA, resolver desde el directorio del ejecutable
+      if (!configPath.startsWith('/') && isSEA) {
+        const execDir = dirname(process.execPath);
+        this.dbPath = join(execDir, configPath);
+      } else if (!configPath.startsWith('/')) {
+        // Ruta relativa en desarrollo
+        this.dbPath = join(process.cwd(), configPath);
+      } else {
+        // Ruta absoluta
+        this.dbPath = configPath;
+      }
+    }
+    return this.dbPath;
   }
 
   private static ensureDataDirectory(): void {
-    const dataDir = join(process.cwd(), 'data');
+    const dbPath = this.getDbPath();
+    const dataDir = dirname(dbPath);
     if (!existsSync(dataDir)) {
       mkdirSync(dataDir, { recursive: true });
     }

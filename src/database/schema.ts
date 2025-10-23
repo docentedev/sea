@@ -65,25 +65,6 @@ export const DEFAULT_ROLES = [
 ];
 
 export const DEFAULT_USERS = [
-  {
-    username: 'admin',
-    email: 'admin@nas-cloud.local',
-    password_hash: 'admin123', // En producción usar bcrypt
-    role_id: 1,
-    storage_quota_gb: 1000
-  },
-  {
-    username: 'demo_user',
-    email: 'user@nas-cloud.local',
-    password_hash: 'user123',
-    role_id: 2,
-    storage_quota_gb: 50
-  },
-  {
-    username: 'guest',
-    email: 'guest@nas-cloud.local',
-    password_hash: 'guest123',
-    role_id: 3,
-    storage_quota_gb: 5
-  }
+  // Users are now loaded from nas-cloud-config.json
+  // This array is kept for backward compatibility but should be empty
 ];

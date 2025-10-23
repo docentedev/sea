@@ -1,0 +1,37 @@
+{
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "trustProxy": false,
+    "logger": true
+  },
+  "database": {
+    "path": "./data/nas-cloud.db"
+  },
+  "users": {
+    "forceCreateInitial": true,
+    "initialUsers": [
+      {
+        "username": "admin",
+        "email": "admin@nas-cloud.local",
+        "password": "newadminpassword",
+        "role": "admin",
+        "storageQuotaGb": 1000,
+        "forceUpdate": true
+      },
+      {
+        "username": "demo",
+        "email": "demo@nas-cloud.local",
+        "password": "newdemopassword",
+        "role": "user",
+        "storageQuotaGb": 50,
+        "forceUpdate": false
+      }
+    ]
+  },
+  "app": {
+    "name": "NAS Cloud",
+    "version": "2.0.0",
+    "description": "Personal Cloud Storage Solution"
+  }
+}
