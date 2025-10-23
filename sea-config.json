@@ -1,5 +1,5 @@
 {
-  "main": "dist/index.js",
+  "main": "dist/sea-bundle.js",
   "output": "sea-prep.blob",
   "disableExperimentalSEAWarning": true,
   "useCodeCache": true,
