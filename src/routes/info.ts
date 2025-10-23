@@ -17,7 +17,7 @@ const infoRoutes: FastifyPluginAsync = async (fastify) => {
     },
   };
 
-  fastify.get<{ Reply: InfoResponse }>('/info', { schema: infoSchema }, async (request, reply) => {
+  fastify.get<{ Reply: InfoResponse }>('/api/info', { schema: infoSchema }, async (request, reply) => {
     const info = fastify.systemService.getInfo();
     
     reply

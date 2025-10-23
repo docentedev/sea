@@ -27,7 +27,7 @@ async function staticPlugin(fastify: FastifyInstance) {
     const url = request.url;
 
     // Si es una ruta de API, no hacer nada
-    if (url.startsWith('/api/') || url.startsWith('/health') || url.startsWith('/info')) {
+    if (url.startsWith('/api/')) {
       return;
     }
 

@@ -47,7 +47,7 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
     },
   };
 
-  fastify.get<{ Reply: HealthResponse }>('/health', { schema: healthSchema }, async (request, reply) => {
+  fastify.get<{ Reply: HealthResponse }>('/api/health', { schema: healthSchema }, async (request, reply) => {
     const health = fastify.systemService.getHealth();
     
     reply

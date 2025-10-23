@@ -1,35 +1,65 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Router, Route } from 'wouter';
+import { AppProvider } from './contexts/AppContext';
+import { HomePage } from './pages/HomePage';
+import { HealthPage } from './pages/HealthPage';
+import { NavLink } from './components/NavLink';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function AppContent() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <Router>
+      <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+        {/* Navigation */}
+        <nav style={{
+          backgroundColor: 'white',
+          borderBottom: '1px solid #ddd',
+          padding: '0 20px'
+        }}>
+          <div style={{
+            maxWidth: '1200px',
+            margin: '0 auto',
+            display: 'flex',
+            alignItems: 'center',
+            height: '60px'
+          }}>
+            <NavLink href="/">
+              <span style={{
+                fontSize: '24px',
+                fontWeight: 'bold',
+                color: '#333'
+              }}>
+                NAS Cloud
+              </span>
+            </NavLink>
+
+            <div style={{ display: 'flex', gap: '20px', marginLeft: '40px' }}>
+              <NavLink href="/">Home</NavLink>
+              <NavLink href="/health">System Health</NavLink>
+            </div>
+          </div>
+        </nav>
+
+        {/* Main Content */}
+        <main style={{
+          maxWidth: '1200px',
+          margin: '0 auto',
+          backgroundColor: 'white',
+          minHeight: 'calc(100vh - 60px)',
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
+        }}>
+          <Route path="/" component={HomePage} />
+          <Route path="/health" component={HealthPage} />
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <AppProvider>
+      <AppContent />
+    </AppProvider>
+  );
+}
+
+export default App;
