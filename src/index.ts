@@ -10,6 +10,8 @@ import homeRoutes from './routes/home';
 import healthRoutes from './routes/health';
 import infoRoutes from './routes/info';
 import apiRoutes from './routes/api';
+import authRoutes from './routes/auth';
+import userRoutes from './routes/users';
 
 async function buildServer() {
   // Crear instancia de Fastify
@@ -32,6 +34,8 @@ async function buildServer() {
   await fastify.register(healthRoutes);
   await fastify.register(infoRoutes);
   await fastify.register(apiRoutes);
+  await fastify.register(authRoutes);
+  await fastify.register(userRoutes);
 
   // Hook para manejo de errores
   fastify.setErrorHandler(async (error, request, reply) => {

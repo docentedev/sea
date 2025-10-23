@@ -210,7 +210,16 @@ export class UserRepository {
 
   private mapRowToUserWithRole(row: any): UserWithRole {
     return {
-      ...this.mapRowToUser(row),
+      id: row.id,
+      username: row.username,
+      email: row.email,
+      password_hash: row.password_hash,
+      role_id: row.role_id,
+      storage_quota_gb: row.storage_quota_gb,
+      storage_used_gb: row.storage_used_gb,
+      is_active: Boolean(row.is_active),
+      created_at: row.created_at,
+      updated_at: row.updated_at,
       role_name: row.role_name,
       role_permissions: JSON.parse(row.permissions)
     };

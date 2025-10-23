@@ -72,14 +72,14 @@ export interface EchoResponse {
   requestId?: string;
 }
 
-// Database types
-export interface User {
-  id: number;
-  name: string;
-  email: string;
-  created_at: string;
-  updated_at: string;
-}
+// Database types (legacy - use models/User.ts instead)
+// export interface User {
+//   id: number;
+//   name: string;
+//   email: string;
+//   created_at: string;
+//   updated_at: string;
+// }
 
 export interface Task {
   id: number;
@@ -113,8 +113,8 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
 }
 
 export interface CreateTaskRequest {
@@ -199,4 +199,89 @@ export interface ErrorResponse {
   isSEA: boolean;
   statusCode: number;
   path?: string;
+}
+
+// Authentication types
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  success: boolean;
+  user?: {
+    id: number;
+    username: string;
+    email: string;
+    role: {
+      id: number;
+      name: string;
+      display_name: string;
+      permissions: string[];
+    };
+    storage_quota_gb: number;
+    storage_used_gb: number;
+  };
+  token?: string;
+  message?: string;
+  timestamp: string;
+}
+
+export interface RegisterUserRequest {
+  username: string;
+  email: string;
+  password: string;
+  role: string;
+  storageQuotaGb?: number;
+}
+
+export interface UpdateUserRequest {
+  username?: string;
+  email?: string;
+  password?: string;
+  role?: string;
+  storageQuotaGb?: number;
+  isActive?: boolean;
+}
+
+export interface UserResponse {
+  id: number;
+  username: string;
+  email: string;
+  role: {
+    id: number;
+    name: string;
+    display_name: string;
+    permissions: string[];
+  };
+  storage_quota_gb: number;
+  storage_used_gb: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UsersListResponse {
+  users: UserResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  timestamp: string;
+}
+
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  role: {
+    id: number;
+    name: string;
+    display_name: string;
+    permissions: string[];
+    can_share: boolean;
+    can_admin: boolean;
+  };
 }
