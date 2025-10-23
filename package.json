@@ -1,7 +1,7 @@
 {
   "name": "sea-server-app",
-  "version": "1.0.0",
-  "description": "Single Executable Application with TypeScript and simple HTTP server",
+  "version": "2.0.0",
+  "description": "NAS Cloud - Single Executable Application with React frontend and Fastify backend",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
