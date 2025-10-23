@@ -40,17 +40,12 @@ export const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 };
 
-// Configuración del logger (simplificada para evitar errores con pino-pretty en SEA)
+// Configuración del logger (simplificada para SEA)
 export const loggerOptions = {
   level: 'info',
-  ...(config.environment === 'development' && !isSEA && {
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss Z',
-        ignore: 'pid,hostname',
-      },
-    },
-  }),
+  // Solo usar pino-pretty en desarrollo y cuando no es SEA
+  ...(config.environment === 'development' && !isSEA ? {
+    // Simplemente usar console logging en desarrollo por ahora
+    // Para evitar problemas con pino-pretty en SEA
+  } : {})
 };

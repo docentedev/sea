@@ -13,26 +13,31 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
           status: { type: 'string' },
           timestamp: { type: 'string' },
           uptime: { type: 'number' },
-          isSEA: { type: 'boolean' },
           version: { type: 'string' },
-          performance: {
+          memory: {
             type: 'object',
             properties: {
-              memoryUsage: {
+              rss: { type: 'number' },
+              heapTotal: { type: 'number' },
+              heapUsed: { type: 'number' },
+              external: { type: 'number' },
+              arrayBuffers: { type: 'number' },
+            },
+          },
+          database: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              message: { type: 'string' },
+              latency: { type: 'number' },
+              stats: {
                 type: 'object',
                 properties: {
-                  rss: { type: 'number' },
-                  heapTotal: { type: 'number' },
-                  heapUsed: { type: 'number' },
-                  external: { type: 'number' },
-                  arrayBuffers: { type: 'number' },
-                },
-              },
-              cpuUsage: {
-                type: 'object',
-                properties: {
-                  user: { type: 'number' },
-                  system: { type: 'number' },
+                  total_users: { type: 'number' },
+                  active_users: { type: 'number' },
+                  total_roles: { type: 'number' },
+                  total_storage_used_gb: { type: 'number' },
+                  database_size_mb: { type: 'number' },
                 },
               },
             },

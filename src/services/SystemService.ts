@@ -1,30 +1,50 @@
 import { HealthResponse, InfoResponse, TimeResponse } from '../types';
 import { appConfig, isSEA, config } from '../config';
+import { DatabaseService } from './DatabaseService';
 
 export class SystemService {
   private startTime: number;
   private cpuUsageBase: NodeJS.CpuUsage;
+  private database: DatabaseService;
 
   constructor() {
     this.startTime = Date.now();
     this.cpuUsageBase = process.cpuUsage();
+    this.database = new DatabaseService();
   }
 
   getHealth(): HealthResponse {
-    const memoryUsage = process.memoryUsage();
-    const cpuUsage = process.cpuUsage(this.cpuUsageBase);
-    
-    return {
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-      isSEA,
-      version: appConfig.version,
-      performance: {
-        memoryUsage,
-        cpuUsage,
-      },
-    };
+    try {
+      const databaseHealth = this.database.getHealth();
+      const databaseStats = this.database.getStats();
+
+      return {
+        status: 'healthy',
+        timestamp: new Date().toISOString(),
+        version: '2.0.0',
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        database: {
+          status: databaseHealth.status,
+          message: databaseHealth.message,
+          latency: 0,
+          stats: databaseStats
+        }
+      };
+    } catch (error) {
+      return {
+        status: 'unhealthy',
+        timestamp: new Date().toISOString(),
+        version: '2.0.0',
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        database: {
+          status: 'unhealthy',
+          message: `Database error: ${error}`,
+          latency: 0
+        }
+      };
+    }
   }
 
   getInfo(): InfoResponse {
@@ -72,5 +92,17 @@ export class SystemService {
 
   generateRequestId(): string {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  getDatabaseService(): DatabaseService {
+    return this.database;
+  }
+
+  getStats() {
+    return this.database.getStats();
+  }
+
+  close(): void {
+    this.database.close();
   }
 }
