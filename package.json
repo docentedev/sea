@@ -1,0 +1,29 @@
+{
+  "name": "sea-server-app",
+  "version": "1.0.0",
+  "description": "Single Executable Application with TypeScript and simple HTTP server",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "build:sea": "npm run build && npm run sea:prep && npm run sea:inject",
+    "sea:prep": "node --experimental-sea-config sea-config.json",
+    "sea:inject": "npm run sea:copy && npm run sea:remove-signature && npm run sea:postject && npm run sea:sign",
+    "sea:copy": "node -e \"require('fs').copyFileSync(process.execPath, process.platform === 'win32' ? 'sea-server.exe' : 'sea-server')\"",
+    "sea:remove-signature": "node scripts/remove-signature.js",
+    "sea:postject": "node scripts/postject.js",
+    "sea:sign": "node scripts/sign.js"
+  },
+  "keywords": ["sea", "single-executable", "typescript", "server"],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "postject": "^1.0.0-alpha.6"
+  }
+}
