@@ -4,30 +4,9 @@ interface LoadingSpinnerProps {
 
 export function LoadingSpinner({ message = 'Loading...' }: LoadingSpinnerProps) {
   return (
-    <div style={{
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '40px',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <div style={{
-        width: '40px',
-        height: '40px',
-        border: '4px solid #f3f3f3',
-        borderTop: '4px solid #3498db',
-        borderRadius: '50%',
-        animation: 'spin 1s linear infinite',
-        marginBottom: '20px'
-      }} />
-      <div>{message}</div>
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
+    <div className="flex flex-col items-center justify-center p-10 font-sans">
+      <div className="w-10 h-10 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin mb-5" />
+      <div className="text-gray-600">{message}</div>
     </div>
   );
 }
@@ -39,28 +18,13 @@ interface ErrorMessageProps {
 
 export function ErrorMessage({ message, onRetry }: ErrorMessageProps) {
   return (
-    <div style={{
-      padding: '20px',
-      backgroundColor: '#fee',
-      border: '1px solid #fcc',
-      borderRadius: '4px',
-      color: '#c33',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h3>Error</h3>
-      <p>{message}</p>
+    <div className="p-5 bg-red-50 border border-red-200 rounded text-red-700 font-sans">
+      <h3 className="font-semibold mb-2">Error</h3>
+      <p className="mb-3">{message}</p>
       {onRetry && (
         <button
           onClick={onRetry}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginTop: '10px'
-          }}
+          className="px-4 py-2 bg-blue-500 text-white border-none rounded hover:bg-blue-600 cursor-pointer transition-colors"
         >
           Retry
         </button>

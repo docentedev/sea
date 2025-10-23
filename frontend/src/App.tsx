@@ -7,31 +7,17 @@ import { NavLink } from './components/NavLink';
 function AppContent() {
   return (
     <Router>
-      <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <div className="min-h-screen bg-gray-50">
         {/* Navigation */}
-        <nav style={{
-          backgroundColor: 'white',
-          borderBottom: '1px solid #ddd',
-          padding: '0 20px'
-        }}>
-          <div style={{
-            maxWidth: '1200px',
-            margin: '0 auto',
-            display: 'flex',
-            alignItems: 'center',
-            height: '60px'
-          }}>
+        <nav className="bg-white border-b border-gray-300 px-5">
+          <div className="max-w-6xl mx-auto flex items-center h-15">
             <NavLink href="/">
-              <span style={{
-                fontSize: '24px',
-                fontWeight: 'bold',
-                color: '#333'
-              }}>
+              <span className="text-2xl font-bold text-gray-800">
                 NAS Cloud
               </span>
             </NavLink>
 
-            <div style={{ display: 'flex', gap: '20px', marginLeft: '40px' }}>
+            <div className="flex gap-5 ml-10">
               <NavLink href="/">Home</NavLink>
               <NavLink href="/health">System Health</NavLink>
             </div>
@@ -39,13 +25,7 @@ function AppContent() {
         </nav>
 
         {/* Main Content */}
-        <main style={{
-          maxWidth: '1200px',
-          margin: '0 auto',
-          backgroundColor: 'white',
-          minHeight: 'calc(100vh - 60px)',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)'
-        }}>
+        <main className="max-w-6xl mx-auto bg-white min-h-[calc(100vh-60px)] shadow-lg">
           <Route path="/" component={HomePage} />
           <Route path="/health" component={HealthPage} />
         </main>

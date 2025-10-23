@@ -3,89 +3,39 @@ import { useLocation } from 'wouter';
 export function HomePage() {
   const [, navigate] = useLocation();
   return (
-    <div style={{
-      padding: '40px',
-      textAlign: 'center',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <h1>NAS Cloud System</h1>
-      <p>Welcome to your personal cloud storage system</p>
+    <div className="p-10 text-center font-sans">
+      <h1 className="text-4xl font-bold text-gray-800 mb-4">NAS Cloud System</h1>
+      <p className="text-lg text-gray-600 mb-16">Welcome to your personal cloud storage system</p>
 
-      <div style={{
-        marginTop: '40px',
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '20px',
-        maxWidth: '800px',
-        margin: '40px auto'
-      }}>
-        <div style={{
-          padding: '20px',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#f9f9f9'
-        }}>
-          <h3>System Health</h3>
-          <p>Monitor system status, memory usage, and database health</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 max-w-4xl mx-auto">
+        <div className="p-5 border border-gray-300 rounded-lg bg-gray-50">
+          <h3 className="text-xl font-semibold text-gray-800 mb-3">System Health</h3>
+          <p className="text-gray-600 mb-4">Monitor system status, memory usage, and database health</p>
           <button
             onClick={() => navigate('/health')}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              marginTop: '10px',
-              cursor: 'pointer'
-            }}
+            className="px-4 py-2 bg-blue-500 text-white border-none rounded hover:bg-blue-600 cursor-pointer transition-colors"
           >
             View Health
           </button>
         </div>
 
-        <div style={{
-          padding: '20px',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#f9f9f9'
-        }}>
-          <h3>File Storage</h3>
-          <p>Manage your files and folders in the cloud</p>
+        <div className="p-5 border border-gray-300 rounded-lg bg-gray-50">
+          <h3 className="text-xl font-semibold text-gray-800 mb-3">File Storage</h3>
+          <p className="text-gray-600 mb-4">Manage your files and folders in the cloud</p>
           <button
             disabled
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#ccc',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              marginTop: '10px',
-              cursor: 'not-allowed'
-            }}
+            className="px-4 py-2 bg-gray-400 text-white border-none rounded cursor-not-allowed"
           >
             Coming Soon
           </button>
         </div>
 
-        <div style={{
-          padding: '20px',
-          border: '1px solid #ddd',
-          borderRadius: '8px',
-          backgroundColor: '#f9f9f9'
-        }}>
-          <h3>User Management</h3>
-          <p>Manage users and permissions</p>
+        <div className="p-5 border border-gray-300 rounded-lg bg-gray-50">
+          <h3 className="text-xl font-semibold text-gray-800 mb-3">User Management</h3>
+          <p className="text-gray-600 mb-4">Manage users and permissions</p>
           <button
             disabled
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#ccc',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              marginTop: '10px',
-              cursor: 'not-allowed'
-            }}
+            className="px-4 py-2 bg-gray-400 text-white border-none rounded cursor-not-allowed"
           >
             Coming Soon
           </button>

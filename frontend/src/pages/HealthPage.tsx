@@ -43,26 +43,14 @@ export function HealthPage() {
 
   return (
     <div>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: '20px',
-        padding: '0 20px'
-      }}>
-        <h1>NAS Cloud System Health</h1>
+      <div className="flex justify-between items-center mb-5 px-5">
+        <h1 className="text-3xl font-bold text-gray-800">NAS Cloud System Health</h1>
         <button
           onClick={fetchHealth}
           disabled={state.loading}
-          style={{
-            padding: '10px 20px',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: state.loading ? 'not-allowed' : 'pointer',
-            opacity: state.loading ? 0.6 : 1
-          }}
+          className={`px-5 py-2.5 bg-blue-500 text-white border-none rounded cursor-pointer transition-opacity ${
+            state.loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-600'
+          }`}
         >
           Refresh
         </button>

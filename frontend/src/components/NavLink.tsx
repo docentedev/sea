@@ -13,14 +13,11 @@ export function NavLink({ href, children }: NavLinkProps) {
   return (
     <Link
       href={href}
-      style={{
-        textDecoration: 'none',
-        color: isActive ? '#3498db' : '#666',
-        fontWeight: isActive ? 'bold' : 'normal',
-        padding: '10px 15px',
-        borderRadius: '4px',
-        backgroundColor: isActive ? '#f0f8ff' : 'transparent'
-      }}
+      className={`no-underline px-4 py-2.5 rounded text-sm font-medium transition-colors ${
+        isActive 
+          ? 'text-blue-600 bg-blue-50' 
+          : 'text-gray-600 hover:text-gray-800'
+      }`}
     >
       {children}
     </Link>
