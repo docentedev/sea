@@ -24,8 +24,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Middleware para verificar autenticación
   const requireAuth = async (request: any, reply: any) => {
+    console.log('🔐 Checking auth for request:', request.url);
     const authHeader = request.headers.authorization;
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('❌ No authorization header found');
       return reply.status(401).send({
         success: false,
         message: 'Authorization header required',
@@ -34,9 +36,11 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const token = authHeader.substring(7);
+    console.log('🔑 Verifying token...');
     const user = authService.verifyToken(token);
 
     if (!user) {
+      console.log('❌ Token verification failed');
       return reply.status(401).send({
         success: false,
         message: 'Invalid or expired token',
@@ -44,6 +48,7 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
 
+    console.log('✅ Token verified for user:', user.username);
     request.user = user;
   };
 

@@ -33,3 +33,47 @@ export class ApiError extends Error {
     this.status = status;
   }
 }
+
+export interface LoginRequest {
+  username: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  token: string;
+  user: User;
+  expiresAt: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  role: Role | string; // Puede ser un objeto Role o un string para compatibilidad
+  createdAt: string;
+  updatedAt: string;
+  storage_quota_gb?: number;
+  storage_used_gb?: number;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  display_name: string;
+  permissions: string[];
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  display_name: string;
+  permissions: string[];
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+}

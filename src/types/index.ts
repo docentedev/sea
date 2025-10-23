@@ -222,6 +222,7 @@ export interface LoginResponse {
     storage_quota_gb: number;
     storage_used_gb: number;
   };
+  expiresAt: string | null;
   token?: string;
   message?: string;
   timestamp: string;
@@ -285,3 +286,4 @@ export interface AuthUser {
     can_admin: boolean;
   };
 }
+
