@@ -379,8 +379,63 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 🏷️ Versiones
 
+- **v2.0.0** - Sistema de configuración externa y gestión de usuarios
+  - Sistema de configuración externa via `nas-cloud-config.json`
+  - Gestión de usuarios iniciales desde archivo de configuración
+  - Flags `forceCreateInitial` y `forceUpdate` para recuperación de contraseñas
+  - Configuración personalizable de puerto, host y base de datos
+  - Arquitectura limpia con servicios, repositorios y modelos
+  - Frontend React 19 con dashboard de health monitoring
+  - API REST bajo `/api` prefix para evitar conflictos de routing
+  - Base de datos SQLite embebida con esquema NAS completo
+  - Single Executable Application de 110.21 MB completamente funcional
+
 - **v1.0.0** - Primera versión estable con servidor HTTP y generación SEA
   - Servidor HTTP básico con endpoints de ejemplo
   - Generación automática de Single Executable Application
   - Soporte para Windows, macOS y Linux
   - Detección automática del modo SEA
+
+## 📝 Changelog
+
+### [2.0.0] - 2025-10-23
+#### ✨ Added
+- **Sistema de configuración externa**: Archivo `nas-cloud-config.json` para configuración completa
+- **Gestión de usuarios externa**: Usuarios iniciales definidos en archivo de configuración
+- **Flags de recuperación**: `forceCreateInitial` y `forceUpdate` para gestión de usuarios
+- **Configuración flexible**: Puerto, host, base de datos y usuarios personalizables
+- **Arquitectura limpia**: Servicios, repositorios y modelos separados
+- **Frontend React 19**: Dashboard completo de monitoreo de salud
+- **API REST organizada**: Endpoints bajo `/api` prefix
+- **Base de datos NAS**: Esquema completo con roles y usuarios
+- **SPA routing**: React Router con Wouter para navegación cliente
+- **Health monitoring**: Estadísticas del sistema y base de datos en tiempo real
+
+#### 🔧 Changed
+- **Configuración**: Movida de variables de entorno a archivo JSON externo
+- **Usuarios**: Eliminados usuarios hardcodeados, ahora desde configuración
+- **API routes**: Movidas de `/health`, `/info` a `/api/health`, `/api/info`
+- **Base de datos**: Ruta configurable en lugar de hardcodeada
+- **Arquitectura**: Separación clara entre servicios, repositorios y modelos
+
+#### 🐛 Fixed
+- **Static files**: Detección correcta de modo SEA vs desarrollo vs bundle
+- **SPA routing**: Funcionamiento correcto en modo SEA
+- **API conflicts**: Resueltos conflictos entre API y frontend routing
+
+#### 📚 Documentation
+- **README completo**: Guía de instalación, configuración y uso
+- **Ejemplos de configuración**: Archivo `nas-cloud-config.example.json`
+- **Recuperación de contraseñas**: Documentación de flags de fuerza
+- **Proceso SEA**: Detalles completos del proceso de creación
+
+### [1.0.0] - 2025-10-22
+#### ✨ Added
+- **Single Executable Application**: Generación automática de binarios standalone
+- **Servidor HTTP básico**: Endpoints de ejemplo con Fastify
+- **Detección de modo SEA**: Diferenciación entre desarrollo y producción
+- **Soporte multiplataforma**: Windows, macOS y Linux
+- **Scripts automatizados**: Proceso completo de inyección y firma
+
+#### 📚 Documentation
+- **README inicial**: Documentación básica de instalación y uso
