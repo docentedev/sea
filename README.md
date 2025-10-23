@@ -20,7 +20,8 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - ✅ **Base de datos SQLite**: Gestión de usuarios y roles para NAS
 - ✅ **Sistema de autenticación**: JWT con roles y permisos
 - ✅ **Gestión de usuarios**: CRUD completo con autorización de admin
-- ✅ **Single Executable**: Aplicación standalone (108.66 MB)
+- ✅ **Tailwind CSS**: Framework de estilos moderno y responsivo
+- ✅ **Single Executable**: Aplicación standalone (110.24 MB)
 - ✅ **Arquitectura limpia**: Servicios, repositorios y controladores
 - ✅ **SPA Routing**: React Router con Wouter
 - ✅ **API REST**: Endpoints bajo `/api` prefix
@@ -435,6 +436,26 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 - **Autorización por roles**: Control de acceso basado en permisos
 - **Validación de entrada**: Prevención de datos maliciosos
 - **Protección de rutas**: Solo administradores pueden gestionar usuarios
+
+### [2.1.0] - 2025-10-23
+#### ✨ Added
+- **Tailwind CSS Framework**: Integración completa de Tailwind CSS en el frontend React
+- **PostCSS Configuration**: Configuración automática de PostCSS para procesamiento de Tailwind
+- **Frontend Styling**: Sistema de estilos moderno y responsivo con Tailwind CSS
+- **Build Process**: Actualización del proceso de build para incluir Tailwind CSS
+- **SEA Compatibility**: Mantenimiento de funcionalidad completa en Single Executable Application
+
+#### 🔧 Changed
+- **Frontend Dependencies**: Nuevas dependencias de desarrollo para Tailwind CSS
+- **CSS Architecture**: Migración de estilos personalizados a sistema de utilidades Tailwind
+- **Build Output**: Archivos compilados actualizados con estilos de Tailwind
+- **Package Version**: Actualización de versión a 2.1.0
+
+#### 🎨 Frontend
+- **Modern UI Framework**: Tailwind CSS para desarrollo de interfaces moderno
+- **Utility-First CSS**: Sistema de clases utilitarias para desarrollo rápido
+- **Responsive Design**: Capacidades de diseño responsivo integradas
+- **Customizable Styling**: Fácil personalización y extensión de estilos
 
 ### [2.0.0] - 2025-10-23
 #### ✨ Added
