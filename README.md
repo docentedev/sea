@@ -1,6 +1,6 @@
-# SEA Server - Single Executable Application
+# NAS Cloud - Single Executable Application
 
-Una aplicación de servidor HTTP simple construida con TypeScript y Node.js que puede compilarse como una aplicación ejecutable standalone usando las Single Executable Applications (SEA) de Node.js.
+Una aplicación completa de NAS (Network Attached Storage) construida como una Single Executable Application con frontend React 19 y backend Fastify.
 
 ## 📖 ¿Qué es Single Executable Applications (SEA)?
 
@@ -9,26 +9,34 @@ Single Executable Applications es una característica experimental de Node.js qu
 - El runtime completo de Node.js
 - Tu código JavaScript compilado
 - Todas las dependencias necesarias
+- Base de datos SQLite embebida
+- Frontend React compilado
 
 Esto significa que puedes distribuir tu aplicación como un solo archivo ejecutable que funciona en Windows, macOS y Linux sin requerir instalaciones adicionales.
 
 ## 🚀 Características
 
-- ✅ Servidor HTTP simple con múltiples endpoints
-- ✅ Construido con TypeScript
-- ✅ Compatible con Windows, macOS y Linux
-- ✅ Se puede ejecutar como aplicación standalone (no requiere Node.js instalado)
-- ✅ Detección automática del modo SEA
-- ✅ Interfaz web simple para probar la funcionalidad
-- ✅ API REST con endpoints de ejemplo
+- ✅ **Full-Stack Application**: Frontend React 19 + Backend Fastify
+- ✅ **Base de datos SQLite**: Gestión de usuarios y roles para NAS
+- ✅ **Single Executable**: Aplicación standalone (108.66 MB)
+- ✅ **Arquitectura limpia**: Servicios, repositorios y controladores
+- ✅ **SPA Routing**: React Router con Wouter
+- ✅ **API REST**: Endpoints bajo `/api` prefix
+- ✅ **Health Monitoring**: Estadísticas del sistema y base de datos
+- ✅ **Desarrollo concurrente**: Backend + Frontend simultáneos
+- ✅ **TypeScript**: Type safety en todo el stack
+- ✅ **Context API**: Manejo de estado en React sin librerías externas
 
 ## 📦 Endpoints Disponibles
 
-- `GET /` - Página de inicio con interfaz web
-- `GET /health` - Estado del servidor
-- `GET /info` - Información del sistema y proceso
+### API Endpoints
+- `GET /api/health` - Estado del sistema y base de datos
+- `GET /api/info` - Información del sistema y proceso
 - `GET /api/time` - Timestamp actual
-- `POST /api/echo` - Echo del contenido enviado
+
+### Frontend Routes
+- `GET /` - Página de inicio
+- `GET /health` - Dashboard de health del sistema
 
 ## 🛠️ Instalación y Configuración
 
@@ -45,16 +53,27 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 git clone git@github.com:docentedev/sea.git
 cd sea
 
-# Instalar dependencias
+# Instalar dependencias del backend
 npm install
+
+# Instalar dependencias del frontend
+cd frontend
+npm install
+cd ..
 ```
 
 ## 🚀 Guía de Inicio Rápido
 
 ### 1. Desarrollo
 ```bash
-# Modo desarrollo con recarga automática
-npm run dev
+# Modo desarrollo completo (backend + frontend simultáneos)
+npm run dev:full
+
+# Solo backend en desarrollo
+npm run dev:backend
+
+# Solo frontend en desarrollo (desde directorio frontend)
+cd frontend && npm run dev
 
 # Compilar TypeScript
 npm run build
@@ -84,6 +103,13 @@ PORT=8080 HOST=127.0.0.1 ./sea-server
 ## 🔧 Comandos Disponibles
 
 | Comando | Descripción |
+|---------|-------------|
+| `npm run dev:full` | Ejecuta backend y frontend simultáneamente |
+| `npm run dev:backend` | Solo backend en modo desarrollo |
+| `npm run dev:frontend` | Solo frontend en modo desarrollo |
+| `npm run build` | Compila TypeScript |
+| `npm run build:sea` | Crea ejecutable standalone |
+| `npm start` | Ejecuta versión compilada |
 |---------|-------------|
 | `npm run dev` | Ejecuta en modo desarrollo con TypeScript |
 | `npm run build` | Compila TypeScript a JavaScript |
