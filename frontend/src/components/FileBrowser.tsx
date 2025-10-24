@@ -377,7 +377,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   <svg className="flex-shrink-0 h-8 w-8 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
                   </svg>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 max-w-full">
                     <p 
                       className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
                       title={folder.name}
@@ -414,7 +414,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   <svg className="flex-shrink-0 h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 max-w-full">
                     <p 
                       className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
                       title={file.original_filename}
@@ -525,7 +525,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {selectedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                        <div className="flex-1 min-w-0">
+                        <div className="flex-1 min-w-0 max-w-full">
                           <p 
                             className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
                             title={file.name}
