@@ -3,11 +3,13 @@ import type { Folder, FileInfo } from '../types/api';
 import { useFileBrowser } from '../hooks/useFileBrowser';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { useFolderOperations } from '../hooks/useFolderOperations';
+import { useFileMove } from '../hooks/useFileMove';
 import { Breadcrumb } from './Breadcrumb';
 import { CreateFolderModal } from './CreateFolderModal';
 import { UploadModal } from './UploadModal';
 import { DeleteModal } from './DeleteModal';
 import { FileList } from './FileList';
+import { MoveFilesModal } from './MoveFilesModal';
 
 interface FileBrowserProps {
   onFileSelect?: (file: FileInfo) => void;
@@ -20,7 +22,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   onFolderSelect,
   allowSelection = false
 }) => {
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
 
   const {
     currentPath,
@@ -73,6 +75,19 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     loadFolderContent(currentPath);
   });
 
+  const {
+    showMoveModal,
+    moving: movingFiles,
+    moveError,
+    moveSuccess,
+    openMoveModal,
+    closeMoveModal,
+    moveFiles
+  } = useFileMove(() => {
+    loadFolderContent(currentPath);
+    setSelectedItems(new Set()); // Clear selection after successful move
+  });
+
   const handleFolderClick = (folder: Folder) => {
     if (onFolderSelect) {
       onFolderSelect(folder);
@@ -88,7 +103,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     }
   };
 
-  const handleItemSelect = (itemId: string) => {
+  const handleItemSelect = (itemId: number) => {
     if (!allowSelection) return;
 
     const newSelected = new Set(selectedItems);
@@ -178,12 +193,55 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               </svg>
               Upload Files
             </button>
+            {selectedItems.size > 0 && (
+              <button
+                onClick={openMoveModal}
+                disabled={movingFiles}
+                className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+                Move {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
+              </button>
+            )}
           </div>
           <div className="text-sm text-gray-500">
             {folderContent && `${folderContent.folders.length} folders, ${folderContent.files.length} files`}
           </div>
         </div>
       </div>
+
+      {/* Status Messages */}
+      {moveError && (
+        <div className="px-4 py-3 bg-red-50 border-l-4 border-red-400">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{moveError}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {moveSuccess && (
+        <div className="px-4 py-3 bg-green-50 border-l-4 border-green-400">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-green-700">{moveSuccess}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Content */}
       <div className="overflow-hidden">
@@ -245,6 +303,16 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
         deleting={deleting}
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
+      />
+
+      <MoveFilesModal
+        isOpen={showMoveModal}
+        fileIds={Array.from(selectedItems)}
+        moving={movingFiles}
+        moveError={moveError}
+        moveSuccess={moveSuccess}
+        onMove={moveFiles}
+        onCancel={closeMoveModal}
       />
     </div>
   );

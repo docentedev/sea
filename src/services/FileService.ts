@@ -67,6 +67,19 @@ export class FileService {
       const maxFileSize = this.getMaxFileSize();
       let fileSize = 0;
 
+      // Validar tipo de archivo
+      if (!this.isFileTypeAllowed(mimeType, originalFilename)) {
+        const blockedExts = this.getBlockedFileExtensions();
+        const fileExt = originalFilename.toLowerCase().substring(originalFilename.lastIndexOf('.'));
+        const isBlockedByExt = blockedExts.includes(fileExt);
+
+        if (isBlockedByExt) {
+          throw new Error(`File extension '${fileExt}' is blocked. Blocked extensions: ${blockedExts.join(', ')}`);
+        } else {
+          throw new Error(`File type '${mimeType}' is not allowed. Allowed types: ${this.getAllowedFileTypes().join(', ')}`);
+        }
+      }
+
       // Get upload base path from configuration
       const basePath = this.configService.getUploadPath();
 
@@ -206,6 +219,74 @@ export class FileService {
     return 100 * 1024 * 1024; // Default 100MB
   }
 
+  // Get allowed file types from configuration
+  getAllowedFileTypes(): string[] {
+    const configValue = this.configService.getConfigValue('allowed_file_types');
+    if (configValue) {
+      // Split by comma and trim whitespace
+      return configValue.split(',').map(type => type.trim());
+    }
+    // Default allowed types
+    return [
+      'image/*',
+      'application/pdf',
+      'text/*',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'application/x-guitar-pro'
+    ];
+  }
+
+  // Get blocked file extensions
+  getBlockedFileExtensions(): string[] {
+    const configValue = this.configService.getConfigValue('blocked_file_extensions');
+    if (configValue) {
+      // Split by comma, trim whitespace, and ensure they start with .
+      return configValue.split(',').map(ext => {
+        const trimmed = ext.trim().toLowerCase();
+        return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
+      });
+    }
+    // Default blocked extensions (common executable/script extensions)
+    return ['.exe', '.bat', '.cmd', '.com', '.scr', '.pif', '.jar', '.py', '.pyc', '.pyo', '.pyd'];
+  }
+
+  // Validate file type against allowed types and blocked extensions
+  isFileTypeAllowed(mimeType: string, fileName?: string): boolean {
+    // First check MIME type
+    const allowedTypes = this.getAllowedFileTypes();
+    const mimeAllowed = allowedTypes.some(allowedType => {
+      if (allowedType.includes('*')) {
+        // Handle wildcard patterns like "image/*"
+        const [mainType] = allowedType.split('/');
+        return mimeType.startsWith(`${mainType}/`);
+      } else {
+        // Exact match
+        return mimeType === allowedType;
+      }
+    });
+
+    if (!mimeAllowed) {
+      return false;
+    }
+
+    // Then check file extension if filename is provided
+    if (fileName) {
+      const blockedExtensions = this.getBlockedFileExtensions();
+      const fileExt = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+
+      if (blockedExtensions.includes(fileExt)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   // Set maximum file size configuration
   setMaxFileSize(sizeInMB: number): void {
     this.configService.setConfigValue('max_file_size_mb', sizeInMB.toString());
@@ -283,6 +364,66 @@ export class FileService {
         throw error;
       }
     }
+  }
+
+  // Move file to different virtual folder
+  async moveFile(fileId: number, newVirtualFolderPath: string, userId: number): Promise<File | null> {
+    try {
+      // Get current file
+      const file = this.fileRepo.findById(fileId);
+      if (!file) {
+        throw new Error('File not found');
+      }
+
+      // Verify ownership
+      if (file.user_id !== userId) {
+        throw new Error('Access denied: file does not belong to user');
+      }
+
+      // If moving to root, set virtual_folder_path to empty string
+      const normalizedPath = newVirtualFolderPath === '/' ? '' : newVirtualFolderPath;
+
+      // Update file's virtual folder path
+      const updateData: UpdateFileData = {
+        virtual_folder_path: normalizedPath
+      };
+
+      const updatedFile = this.fileRepo.update(fileId, updateData);
+      if (!updatedFile) {
+        throw new Error('Failed to update file');
+      }
+
+      return updatedFile;
+    } catch (error) {
+      console.error('Error moving file:', error);
+      throw error;
+    }
+  }
+
+  // Move multiple files to different virtual folder
+  async moveFiles(fileIds: number[], newVirtualFolderPath: string, userId: number): Promise<File[]> {
+    const movedFiles: File[] = [];
+
+    for (const fileId of fileIds) {
+      const movedFile = await this.moveFile(fileId, newVirtualFolderPath, userId);
+      if (movedFile) {
+        movedFiles.push(movedFile);
+      }
+    }
+
+    return movedFiles;
+  }
+
+  // Check if virtual folder exists for user
+  async virtualFolderExists(virtualFolderPath: string, userId: number): Promise<boolean> {
+    // For root folder, always exists
+    if (virtualFolderPath === '/') {
+      return true;
+    }
+
+    // Check if folder exists in database for this user
+    const userFolders = await this.virtualFolderService.getUserFolders(userId);
+    return userFolders.some(folder => folder.path === virtualFolderPath);
   }
 
   private generateUniqueFilename(originalFilename: string): string {

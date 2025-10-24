@@ -146,7 +146,8 @@ export interface FileUploadResponse {
 export interface FileUploadConfig {
   maxFileSize: number;
   maxFilesPerUpload: number;
-  allowedFileTypes: string;
+  allowedFileTypes: string[];
+  blockedFileExtensions: string[];
 }
 
 // Folder types
@@ -183,4 +184,35 @@ export interface FoldersResponse {
   success: boolean;
   data: Folder[];
   timestamp: string;
+}
+
+// Configuration types
+export interface Configuration {
+  id: number;
+  name: string;
+  value: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConfigurationsResponse {
+  success: boolean;
+  data: Configuration[];
+  timestamp: string;
+}
+
+export interface ConfigurationResponse {
+  success: boolean;
+  data: Configuration;
+  timestamp: string;
+}
+
+export interface CreateConfigurationRequest {
+  name: string;
+  value: string;
+}
+
+export interface UpdateConfigurationRequest {
+  name?: string;
+  value?: string;
 }

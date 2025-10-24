@@ -413,6 +413,31 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 📝 Changelog
 
+### [4.2.0] - 2025-10-24
+#### ✨ Added
+- **Validación mejorada de archivos**: Sistema de bloqueo de extensiones de archivo junto con validación de tipos MIME
+- **Soporte para archivos Guitar Pro**: Tipo MIME `application/x-guitar-pro` para archivos .gp
+- **Panel de configuración**: Nuevo componente frontend para gestión de configuraciones del sistema
+- **Funcionalidad de mover archivos**: Capacidad de mover archivos entre carpetas virtuales con soporte drag-and-drop
+- **Componente MoveFilesModal**: Diálogo modal para seleccionar carpeta destino al mover archivos
+- **Hooks de configuración**: Hook `useConfiguration` para gestión de configuraciones del sistema
+- **Hooks de movimiento de archivos**: Hook `useFileMove` para operaciones de reubicación de archivos
+- **Página de configuración**: Nueva página de administración para gestión de configuración del sistema
+
+#### 🔧 Changed
+- **Validación FileService**: Método `isFileTypeAllowed()` mejorado para verificar tanto tipos MIME como extensiones bloqueadas
+- **Inicialización de base de datos**: Configuraciones predeterminadas agregadas para `allowed_file_types` y `blocked_file_extensions`
+- **Endpoint de subida**: Actualizado `/api/files/upload/config` para retornar información de extensiones bloqueadas
+- **Subida de archivos frontend**: Retroalimentación de validación mejorada mostrando extensiones bloqueadas específicas
+
+#### 🛡️ Security
+- **Bloqueo de extensiones**: Prevención de subida de archivos ejecutables y scripts (.exe, .bat, .cmd, .py, etc.)
+- **Validación mejorada**: Validación de dos capas combinando listas de permisos de tipos MIME con listas de bloqueo de extensiones
+
+#### 🐛 Fixed
+- **Validación de tipos de archivo**: Resuelto problema donde archivos .py podían subirse a pesar de la lista de permisos text/*
+- **Persistencia de configuración**: Asegurado que las extensiones de archivo bloqueadas se inicialicen correctamente en la base de datos
+
 ### [2.1.2] - 2025-10-23
 #### ✨ Added
 - **Correcciones menores**: Ajustes en la configuración de estilos y dependencias.

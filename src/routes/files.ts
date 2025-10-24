@@ -1,6 +1,7 @@
-import { FastifyPluginAsync } from 'fastify';
+import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import { FileService } from '../services/FileService.js';
 import { AuthService } from '../services/AuthService.js';
+import { ConfigurationService } from '../services/ConfigurationService.js';
 import { AuthUser } from '../types/index.js';
 import { Readable } from 'node:stream';
 
@@ -306,6 +307,7 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       const maxFileSize = fileService.getMaxFileSize();
       const maxFilesPerUpload = parseInt(fileService.getConfigValue('max_files_per_upload') || '10');
       const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,application/pdf,text/*';
+      const blockedFileExtensions = fileService.getBlockedFileExtensions();
 
       return reply.send({
         success: true,
@@ -313,7 +315,8 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
           maxFileSize,
           maxFileSizeMB: Math.round(maxFileSize / (1024 * 1024)),
           maxFilesPerUpload,
-          allowedFileTypes: allowedFileTypes.split(',')
+          allowedFileTypes: allowedFileTypes.split(','),
+          blockedFileExtensions
         },
         timestamp: new Date().toISOString()
       });
@@ -326,6 +329,100 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
   });
+
+  // Mover archivo(s) a un directorio virtual diferente
+  fastify.put('/api/files/move', {
+    preHandler: requireAuth,
+    schema: {
+      body: {
+        type: 'object',
+        required: ['fileIds', 'destinationPath'],
+        properties: {
+          fileIds: {
+            type: 'array',
+            items: { type: 'integer' },
+            minItems: 1
+          },
+          destinationPath: {
+            type: 'string',
+            minLength: 1
+          }
+        }
+      }
+    }
+  }, async (request, reply) => {
+    try {
+      const { fileIds, destinationPath } = request.body as { fileIds: number[], destinationPath: string };
+      const userId = request.user!.id;
+
+      // Validate destination path format
+      if (!destinationPath.startsWith('/')) {
+        return reply.status(400).send({
+          success: false,
+          message: 'Destination path must start with /',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // If destination is not root, verify the folder exists
+      if (destinationPath !== '/') {
+        const folderExists = await fileService.virtualFolderExists(destinationPath, userId);
+        if (!folderExists) {
+          return reply.status(400).send({
+            success: false,
+            message: 'Destination folder does not exist',
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+
+      // Move files
+      const movedFiles = await fileService.moveFiles(fileIds, destinationPath, userId);
+
+      return reply.send({
+        success: true,
+        message: `Successfully moved ${movedFiles.length} file(s)`,
+        data: {
+          movedFiles,
+          destinationPath
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Error moving files:', error);
+      return reply.status(500).send({
+        success: false,
+        message: error.message || 'Failed to move files',
+        timestamp: new Date().toISOString()
+      });
+    }
+  });
+};
+
+// Get upload configuration
+const getUploadConfig = async (request: FastifyRequest, reply: FastifyReply) => {
+  try {
+    const fileService = new FileService();
+
+    const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,text/*,application/pdf';
+    const maxFileSize = fileService.getMaxFileSize();
+
+    return reply.send({
+      success: true,
+      data: {
+        allowedFileTypes: allowedFileTypes.split(',').map((type: string) => type.trim()),
+        maxFileSize
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error: any) {
+    console.error('Error getting upload config:', error);
+    return reply.status(500).send({
+      success: false,
+      message: error.message || 'Failed to get upload configuration',
+      timestamp: new Date().toISOString()
+    });
+  }
 };
 
 export default fileRoutes;

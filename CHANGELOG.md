@@ -5,6 +5,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.2.0] - 2025-10-24
+
+### Added
+- **Enhanced file upload validation**: Added blocked file extensions checking alongside MIME type validation
+- **Guitar Pro file support**: Added `application/x-guitar-pro` MIME type for .gp files
+- **Configuration management panel**: New frontend component for managing system configurations
+- **File moving functionality**: Ability to move files between virtual folders with drag-and-drop support
+- **MoveFilesModal component**: Modal dialog for selecting destination folder when moving files
+- **Configuration hooks**: `useConfiguration` hook for managing system settings
+- **File move hooks**: `useFileMove` hook for handling file relocation operations
+- **Configuration page**: New admin page for system configuration management
+
+### Changed
+- **FileService validation**: Enhanced `isFileTypeAllowed()` method to check both MIME types and blocked extensions
+- **Database initialization**: Added default configurations for `allowed_file_types` and `blocked_file_extensions`
+- **File upload endpoint**: Updated `/api/files/upload/config` to return blocked extensions information
+- **Frontend file upload**: Improved validation feedback showing specific blocked extensions
+
+### Security
+- **File extension blocking**: Prevents upload of executable and script files (.exe, .bat, .cmd, .py, etc.)
+- **Enhanced validation**: Two-layer validation combining MIME type allowlists with extension blocklists
+
+### Fixed
+- **File type validation**: Resolved issue where .py files could be uploaded despite text/* allowlist
+- **Configuration persistence**: Ensured blocked file extensions are properly seeded in database
+
 ## [2.2.0] - 2025-10-24
 
 ### Added

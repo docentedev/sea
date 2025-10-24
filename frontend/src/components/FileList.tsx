@@ -5,10 +5,10 @@ interface FileListProps {
   folders: Folder[];
   files: FileInfo[];
   allowSelection: boolean;
-  selectedItems: Set<string>;
+  selectedItems: Set<number>;
   onFolderClick: (folder: Folder) => void;
   onFileClick: (file: FileInfo) => void;
-  onItemSelect: (itemId: string) => void;
+  onItemSelect: (itemId: number) => void;
   onDeleteClick: (type: 'file' | 'folder', id: number, name: string, path?: string) => void;
   formatFileSize: (bytes: number) => string;
 }
@@ -70,16 +70,16 @@ export const FileList: React.FC<FileListProps> = ({
           <div
             key={`folder-${folder.id}`}
             className={`grid grid-cols-12 gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer ${
-              selectedItems.has(`folder-${folder.id}`) ? 'bg-blue-50' : ''
+              selectedItems.has(folder.id) ? 'bg-blue-50' : ''
             }`}
-            onClick={() => allowSelection ? onItemSelect(`folder-${folder.id}`) : onFolderClick(folder)}
+            onClick={() => allowSelection ? onItemSelect(folder.id) : onFolderClick(folder)}
           >
             <div className="col-span-6 flex items-center">
               {allowSelection && (
                 <input
                   type="checkbox"
-                  checked={selectedItems.has(`folder-${folder.id}`)}
-                  onChange={() => onItemSelect(`folder-${folder.id}`)}
+                  checked={selectedItems.has(folder.id)}
+                  onChange={() => onItemSelect(folder.id)}
                   className="mr-3"
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -108,16 +108,16 @@ export const FileList: React.FC<FileListProps> = ({
           <div
             key={`file-${file.id}`}
             className={`grid grid-cols-12 gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer ${
-              selectedItems.has(`file-${file.id}`) ? 'bg-blue-50' : ''
+              selectedItems.has(file.id) ? 'bg-blue-50' : ''
             }`}
-            onClick={() => allowSelection ? onItemSelect(`file-${file.id}`) : onFileClick(file)}
+            onClick={() => allowSelection ? onItemSelect(file.id) : onFileClick(file)}
           >
             <div className="col-span-6 flex items-center">
               {allowSelection && (
                 <input
                   type="checkbox"
-                  checked={selectedItems.has(`file-${file.id}`)}
-                  onChange={() => onItemSelect(`file-${file.id}`)}
+                  checked={selectedItems.has(file.id)}
+                  onChange={() => onItemSelect(file.id)}
                   className="mr-3"
                   onClick={(e) => e.stopPropagation()}
                 />

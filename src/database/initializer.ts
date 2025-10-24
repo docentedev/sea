@@ -157,6 +157,22 @@ export class DatabaseInitializer {
         this.configService.setUploadPath(defaultUploadPath);
         console.log(`📁 Default upload path set to: ${defaultUploadPath}`);
       }
+
+      // Set default allowed file types if not exists
+      const allowedFileTypes = this.configService.getConfigValue('allowed_file_types');
+      if (!allowedFileTypes) {
+        const defaultAllowedTypes = 'image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/x-guitar-pro';
+        this.configService.setConfigValue('allowed_file_types', defaultAllowedTypes);
+        console.log(`📄 Default allowed file types set`);
+      }
+
+      // Set default blocked file extensions if not exists
+      const blockedExtensions = this.configService.getConfigValue('blocked_file_extensions');
+      if (!blockedExtensions) {
+        const defaultBlockedExtensions = '.exe,.bat,.cmd,.com,.scr,.pif,.jar,.py,.pyc,.pyo,.pyd';
+        this.configService.setConfigValue('blocked_file_extensions', defaultBlockedExtensions);
+        console.log(`🚫 Default blocked file extensions set`);
+      }
     } catch (error) {
       console.error('❌ Error seeding default configurations:', error);
     }

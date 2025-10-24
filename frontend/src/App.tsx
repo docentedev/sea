@@ -6,6 +6,7 @@ import { HomePage } from './pages/HomePage';
 import { HealthPage } from './pages/HealthPage';
 import UserManagementPage from './pages/UserManagementPage';
 import { FileBrowserPage } from './pages/FileBrowserPage';
+import ConfigurationPage from './pages/ConfigurationPage';
 import { NavLink } from './components/NavLink';
 import { useState } from 'react';
 import { Menu, MenuItem } from './components/Menu';
@@ -51,7 +52,10 @@ function AppContent() {
                 ? state.user.role.name === 'admin' 
                 : state.user.role === 'admin' || state.user.role.includes('admin')
             ) && (
-              <NavLink href="/users">Manage Users</NavLink>
+              <>
+                <NavLink href="/users">Manage Users</NavLink>
+                <NavLink href="/config">Configuration</NavLink>
+              </>
             )}
           </div>
 
@@ -78,7 +82,10 @@ function AppContent() {
                       ? state.user.role.name === 'admin' 
                       : state.user.role === 'admin' || state.user.role.includes('admin')
                   ) && (
-                    <MenuItem href="/users">Manage Users</MenuItem>
+                    <>
+                      <MenuItem href="/users">Manage Users</MenuItem>
+                      <MenuItem href="/config">Configuration</MenuItem>
+                    </>
                   )}
                 </Menu>
               )}
@@ -93,6 +100,7 @@ function AppContent() {
         <Route path="/health" component={HealthPage} />
         <Route path="/users" component={UserManagementPage} />
         <Route path="/browser" component={FileBrowserPage} />
+        <Route path="/config" component={ConfigurationPage} />
       </main>
     </div>
   );

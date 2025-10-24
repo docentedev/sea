@@ -1,4 +1,4 @@
-import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse } from '../types/api';
+import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest } from '../types/api';
 import { ApiError } from '../types/api';
 
 class ApiService {
@@ -178,6 +178,17 @@ class ApiService {
     });
   }
 
+  async moveFiles(fileIds: number[], destinationPath: string): Promise<{ movedFiles: FileInfo[], destinationPath: string }> {
+    const response = await this.request<ApiResponse<{ movedFiles: FileInfo[], destinationPath: string }>>('/api/files/move', {
+      method: 'PUT',
+      body: JSON.stringify({
+        fileIds,
+        destinationPath,
+      }),
+    });
+    return response.data;
+  }
+
   async deleteFolder(folderPath: string): Promise<void> {
     return this.request<void>(`/api/folders?${new URLSearchParams({ path: folderPath })}`, {
       method: 'DELETE',
@@ -205,6 +216,57 @@ class ApiService {
         path,
         parent_path: parentPath || null
       }),
+    });
+    return response.data;
+  }
+
+  // Configuration methods
+  async getConfigurations(): Promise<Configuration[]> {
+    const response = await this.request<ConfigurationsResponse>('/api/configurations');
+    return response.data;
+  }
+
+  async getConfiguration(id: number): Promise<Configuration> {
+    const response = await this.request<ConfigurationResponse>(`/api/configurations/${id}`);
+    return response.data;
+  }
+
+  async getConfigurationByName(name: string): Promise<Configuration> {
+    const response = await this.request<ConfigurationResponse>(`/api/configurations/name/${encodeURIComponent(name)}`);
+    return response.data;
+  }
+
+  async createConfiguration(data: CreateConfigurationRequest): Promise<Configuration> {
+    const response = await this.request<ConfigurationResponse>('/api/configurations', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    return response.data;
+  }
+
+  async updateConfiguration(id: number, data: UpdateConfigurationRequest): Promise<Configuration> {
+    const response = await this.request<ConfigurationResponse>(`/api/configurations/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+    return response.data;
+  }
+
+  async deleteConfiguration(id: number): Promise<void> {
+    await this.request<void>(`/api/configurations/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getConfigurationValue(name: string): Promise<{ name: string; value: string }> {
+    const response = await this.request<ApiResponse<{ name: string; value: string }>>(`/api/configurations/value/${encodeURIComponent(name)}`);
+    return response.data;
+  }
+
+  async setConfigurationValue(name: string, value: string): Promise<Configuration> {
+    const response = await this.request<ConfigurationResponse>(`/api/configurations/value/${encodeURIComponent(name)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ value }),
     });
     return response.data;
   }
