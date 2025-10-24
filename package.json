@@ -1,6 +1,6 @@
 {
   "name": "sea-server-app",
-  "version": "4.1.0",
+  "version": "4.1.1",
   "description": "NAS Cloud - Single Executable Application with React frontend and Fastify backend",
   "main": "dist/index.js",
   "scripts": {
