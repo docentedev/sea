@@ -27,6 +27,7 @@ export function FileBrowserPage() {
             <FileBrowser
               onFileSelect={handleFileSelect}
               onFolderSelect={handleFolderSelect}
+              allowSelection={true}
             />
           </div>
         </div>

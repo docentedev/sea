@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.3.0] - 2025-10-24
+
+### Added
+- **File view modes**: Support for both list and grid views for file browsing
+- **View mode toggle**: UI buttons to switch between list and grid display modes
+- **Default file view configuration**: System-wide setting for preferred file view mode
+- **Responsive grid layout**: Card-based grid view with icons and metadata for files and folders
+- **View mode persistence**: User preference saved and loaded from configuration
+- **Enhanced FileList component**: Dual rendering modes (list table and grid cards)
+- **File view configuration API**: Backend support for default file view settings
+
+### Changed
+- **FileBrowser component**: Added view mode state management and toggle controls
+- **FileList component**: Refactored to support both list and grid rendering modes
+- **Database initialization**: Added default file view mode configuration seeding
+- **API responses**: File upload config endpoint now includes default file view setting
+- **Frontend hooks**: useFileBrowser hook now manages view mode preferences
+
+### UI/UX
+- **View toggle buttons**: Intuitive list/grid toggle in file browser toolbar
+- **Grid view cards**: Visual cards showing file/folder icons, names, sizes, and dates
+- **List view table**: Traditional table layout with columns for file information
+- **Consistent styling**: Both views maintain design consistency with Tailwind CSS
+
+### Technical Details
+- **Configuration system**: Extended with `default_file_view` setting (values: 'list' or 'grid')
+- **TypeScript interfaces**: Updated FileUploadConfig to include defaultFileView property
+- **State management**: View mode synchronized between local state and system configuration
+- **Component architecture**: Modular FileList component with conditional rendering
+
 ## [4.2.0] - 2025-10-24
 
 ### Added

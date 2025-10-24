@@ -308,6 +308,7 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       const maxFilesPerUpload = parseInt(fileService.getConfigValue('max_files_per_upload') || '10');
       const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,application/pdf,text/*';
       const blockedFileExtensions = fileService.getBlockedFileExtensions();
+      const defaultFileView = fileService.getDefaultFileView();
 
       return reply.send({
         success: true,
@@ -316,7 +317,8 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
           maxFileSizeMB: Math.round(maxFileSize / (1024 * 1024)),
           maxFilesPerUpload,
           allowedFileTypes: allowedFileTypes.split(','),
-          blockedFileExtensions
+          blockedFileExtensions,
+          defaultFileView
         },
         timestamp: new Date().toISOString()
       });

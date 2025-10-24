@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { Folder, FileInfo } from '../types/api';
 import { useFileBrowser } from '../hooks/useFileBrowser';
 import { useFileUpload } from '../hooks/useFileUpload';
@@ -23,18 +23,33 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   allowSelection = false
 }) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   const {
     currentPath,
     folderContent,
     loading,
     error,
+    defaultViewMode,
     navigateToPath,
     navigateToParent,
     getBreadcrumbs,
     handleBreadcrumbClick,
+    updateDefaultViewMode,
     loadFolderContent
   } = useFileBrowser();
+
+  // Sync view mode with default setting
+  useEffect(() => {
+    if (defaultViewMode) {
+      setViewMode(defaultViewMode);
+    }
+  }, [defaultViewMode]);
+
+  const handleViewModeChange = async (newViewMode: 'list' | 'grid') => {
+    setViewMode(newViewMode);
+    await updateDefaultViewMode(newViewMode);
+  };
 
   const {
     showUploadModal,
@@ -206,8 +221,39 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               </button>
             )}
           </div>
-          <div className="text-sm text-gray-500">
-            {folderContent && `${folderContent.folders.length} folders, ${folderContent.files.length} files`}
+          <div className="flex items-center space-x-2">
+            {/* View Mode Toggle */}
+            <div className="flex items-center border border-gray-300 rounded-md">
+              <button
+                onClick={() => handleViewModeChange('list')}
+                className={`px-3 py-1 text-sm font-medium rounded-l-md ${
+                  viewMode === 'list'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                title="List view"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                </svg>
+              </button>
+              <button
+                onClick={() => handleViewModeChange('grid')}
+                className={`px-3 py-1 text-sm font-medium rounded-r-md ${
+                  viewMode === 'grid'
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                }`}
+                title="Grid view"
+              >
+                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </button>
+            </div>
+            <div className="text-sm text-gray-500">
+              {folderContent && `${folderContent.folders.length} folders, ${folderContent.files.length} files`}
+            </div>
           </div>
         </div>
       </div>
@@ -256,6 +302,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             onItemSelect={handleItemSelect}
             onDeleteClick={handleDeleteClick}
             formatFileSize={formatFileSize}
+            viewMode={viewMode}
           />
         ) : (
           <div className="text-center py-12">

@@ -7,6 +7,7 @@ export const useFileBrowser = () => {
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [defaultViewMode, setDefaultViewMode] = useState<'list' | 'grid'>('list');
 
   useEffect(() => {
     loadFolderContent(currentPath);
@@ -21,16 +22,31 @@ export const useFileBrowser = () => {
     }
   }, []);
 
-  // Update URL when path changes
+  // Load default view mode on mount
   useEffect(() => {
-    const url = new URL(window.location.href);
-    if (currentPath === '/') {
-      url.searchParams.delete('path');
-    } else {
-      url.searchParams.set('path', encodeURIComponent(currentPath));
+    const loadDefaultViewMode = async () => {
+      try {
+        const config = await apiService.getFileUploadConfig();
+        if (config.defaultFileView) {
+          setDefaultViewMode(config.defaultFileView);
+        }
+      } catch (error) {
+        console.warn('Failed to load default view mode:', error);
+      }
+    };
+
+    loadDefaultViewMode();
+  }, []);
+
+  const updateDefaultViewMode = async (viewMode: 'list' | 'grid') => {
+    try {
+      // Note: This would require a new API endpoint to update user preferences
+      // For now, we'll just update local state
+      setDefaultViewMode(viewMode);
+    } catch (error) {
+      console.error('Failed to update default view mode:', error);
     }
-    window.history.replaceState({}, '', url.toString());
-  }, [currentPath]);
+  };
 
   const loadFolderContent = async (path: string) => {
     setLoading(true);
@@ -82,11 +98,13 @@ export const useFileBrowser = () => {
     folderContent,
     loading,
     error,
+    defaultViewMode,
     loadFolderContent,
     navigateToPath,
     navigateToParent,
     getBreadcrumbs,
     handleBreadcrumbClick,
+    updateDefaultViewMode,
     setError
   };
 };

@@ -173,6 +173,13 @@ export class DatabaseInitializer {
         this.configService.setConfigValue('blocked_file_extensions', defaultBlockedExtensions);
         console.log(`🚫 Default blocked file extensions set`);
       }
+
+      // Set default file view mode if not exists
+      const defaultFileView = this.configService.getConfigValue('default_file_view');
+      if (!defaultFileView) {
+        this.configService.setConfigValue('default_file_view', 'list');
+        console.log(`👁️ Default file view mode set to 'list'`);
+      }
     } catch (error) {
       console.error('❌ Error seeding default configurations:', error);
     }

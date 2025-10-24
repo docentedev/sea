@@ -11,6 +11,7 @@ interface FileListProps {
   onItemSelect: (itemId: number) => void;
   onDeleteClick: (type: 'file' | 'folder', id: number, name: string, path?: string) => void;
   formatFileSize: (bytes: number) => string;
+  viewMode?: 'list' | 'grid';
 }
 
 export const FileList: React.FC<FileListProps> = ({
@@ -22,7 +23,8 @@ export const FileList: React.FC<FileListProps> = ({
   onFileClick,
   onItemSelect,
   onDeleteClick,
-  formatFileSize
+  formatFileSize,
+  viewMode = 'list'
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString();
@@ -53,7 +55,7 @@ export const FileList: React.FC<FileListProps> = ({
     }
   };
 
-  return (
+  const renderListView = () => (
     <div className="bg-white shadow-sm rounded-lg overflow-hidden">
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-200">
         <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-700">
@@ -149,4 +151,103 @@ export const FileList: React.FC<FileListProps> = ({
       </div>
     </div>
   );
+
+  const renderGridView = () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
+      {/* Folders */}
+      {folders.map((folder) => (
+        <div
+          key={`folder-${folder.id}`}
+          className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer ${
+            selectedItems.has(folder.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+          }`}
+          onClick={() => allowSelection ? onItemSelect(folder.id) : onFolderClick(folder)}
+        >
+          {allowSelection && (
+            <div className="flex justify-end mb-2">
+              <input
+                type="checkbox"
+                checked={selectedItems.has(folder.id)}
+                onChange={() => onItemSelect(folder.id)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+          <div className="text-center">
+            <div className="text-4xl mb-2">📁</div>
+            <div className="font-medium text-gray-900 text-sm truncate" title={folder.name}>
+              {folder.name}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {formatDate(folder.created_at)}
+            </div>
+            <div className="mt-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteClick('folder', folder.id, folder.name, folder.path);
+                }}
+                className="text-red-600 hover:text-red-800 text-xs"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {/* Files */}
+      {files.map((file) => (
+        <div
+          key={`file-${file.id}`}
+          className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer ${
+            selectedItems.has(file.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+          }`}
+          onClick={() => allowSelection ? onItemSelect(file.id) : onFileClick(file)}
+        >
+          {allowSelection && (
+            <div className="flex justify-end mb-2">
+              <input
+                type="checkbox"
+                checked={selectedItems.has(file.id)}
+                onChange={() => onItemSelect(file.id)}
+                onClick={(e) => e.stopPropagation()}
+              />
+            </div>
+          )}
+          <div className="text-center">
+            <div className="text-4xl mb-2">{getFileIcon(file.original_filename)}</div>
+            <div className="font-medium text-gray-900 text-sm truncate" title={file.original_filename}>
+              {file.original_filename}
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              {formatFileSize(file.size)}
+            </div>
+            <div className="text-xs text-gray-500">
+              {formatDate(file.created_at)}
+            </div>
+            <div className="mt-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDeleteClick('file', file.id, file.original_filename);
+                }}
+                className="text-red-600 hover:text-red-800 text-xs"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      ))}
+
+      {folders.length === 0 && files.length === 0 && (
+        <div className="col-span-full text-center py-12 text-gray-500">
+          This folder is empty
+        </div>
+      )}
+    </div>
+  );
+
+  return viewMode === 'grid' ? renderGridView() : renderListView();
 };

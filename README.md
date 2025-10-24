@@ -413,7 +413,36 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 📝 Changelog
 
-### [4.2.0] - 2025-10-24
+### [4.3.0] - 2025-10-24
+#### ✨ Added
+- **Modos de vista de archivos**: Soporte para vistas de lista y cuadrícula para navegación de archivos
+- **Alternancia de modos de vista**: Botones de interfaz para cambiar entre visualización de lista y cuadrícula
+- **Configuración de vista de archivos por defecto**: Configuración del sistema para modo de vista de archivos preferido
+- **Diseño de cuadrícula responsiva**: Vista de tarjetas con iconos y metadatos para archivos y carpetas
+- **Persistencia del modo de vista**: Preferencia del usuario guardada y cargada desde configuración
+- **Componente FileList mejorado**: Modos de renderizado dual (tabla de lista y tarjetas de cuadrícula)
+- **API de configuración de vista de archivos**: Soporte backend para configuraciones de vista de archivos por defecto
+
+#### 🔧 Changed
+- **Componente FileBrowser**: Agregada gestión de estado de modo de vista y controles de alternancia
+- **Componente FileList**: Refactorizado para soportar modos de renderizado de lista y cuadrícula
+- **Inicialización de base de datos**: Agregada inicialización de configuración de modo de vista de archivos por defecto
+- **Respuestas API**: Endpoint de configuración de subida ahora incluye configuración de vista de archivos por defecto
+- **Hooks frontend**: Hook useFileBrowser ahora gestiona preferencias de modo de vista
+
+#### 🎨 UI/UX
+- **Botones de alternancia de vista**: Alternancia intuitiva lista/cuadrícula en barra de herramientas del navegador de archivos
+- **Tarjetas de vista de cuadrícula**: Tarjetas visuales mostrando iconos de archivos/carpetas, nombres, tamaños y fechas
+- **Vista de tabla de lista**: Diseño de tabla tradicional con columnas para información de archivos
+- **Estilos consistentes**: Ambas vistas mantienen consistencia de diseño con Tailwind CSS
+
+#### 🛠️ Technical Details
+- **Sistema de configuración**: Extendido con configuración `default_file_view` (valores: 'list' o 'grid')
+- **Interfaces TypeScript**: FileUploadConfig actualizado para incluir propiedad defaultFileView
+- **Gestión de estado**: Modo de vista sincronizado entre estado local y configuración del sistema
+- **Arquitectura de componentes**: Componente FileList modular con renderizado condicional
+
+### [4.2.0] - 2025-10-23
 #### ✨ Added
 - **Validación mejorada de archivos**: Sistema de bloqueo de extensiones de archivo junto con validación de tipos MIME
 - **Soporte para archivos Guitar Pro**: Tipo MIME `application/x-guitar-pro` para archivos .gp

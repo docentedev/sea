@@ -302,6 +302,20 @@ export class FileService {
     return this.configService.setConfigValue(name, value);
   }
 
+  // Get default file view mode
+  getDefaultFileView(): string {
+    const configValue = this.configService.getConfigValue('default_file_view');
+    return configValue || 'list'; // Default to 'list' if not configured
+  }
+
+  // Set default file view mode
+  setDefaultFileView(viewMode: string): void {
+    if (!['list', 'grid'].includes(viewMode)) {
+      throw new Error('Invalid view mode. Must be "list" or "grid"');
+    }
+    this.configService.setConfigValue('default_file_view', viewMode);
+  }
+
   // Folder operations
   async createFolder(folderPath: string): Promise<void> {
     const basePath = this.configService.getUploadPath();
