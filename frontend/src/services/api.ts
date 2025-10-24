@@ -179,10 +179,7 @@ class ApiService {
   }
 
   async deleteFolder(folderPath: string): Promise<void> {
-    const params = new URLSearchParams({
-      path: folderPath,
-    });
-    return this.request<void>(`/api/folders?${params}`, {
+    return this.request<void>(`/api/folders?${new URLSearchParams({ path: folderPath })}`, {
       method: 'DELETE',
     });
   }

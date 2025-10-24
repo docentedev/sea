@@ -3,17 +3,22 @@ import { DatabaseConnection } from './connection.js';
 import { DB_SCHEMA, DEFAULT_ROLES } from './schema.js';
 import { RoleRepository } from '../repositories/RoleRepository.js';
 import { UserRepository } from '../repositories/UserRepository.js';
+import { ConfigurationService } from '../services/ConfigurationService.js';
 import { usersConfig } from '../config/index.js';
+import * as path from 'node:path';
+import * as fs from 'node:fs';
 
 export class DatabaseInitializer {
   private db: DatabaseSync;
   private roleRepo: RoleRepository;
   private userRepo: UserRepository;
+  private configService: ConfigurationService;
 
   constructor() {
     this.db = DatabaseConnection.getConnection();
     this.roleRepo = new RoleRepository(this.db);
     this.userRepo = new UserRepository(this.db);
+    this.configService = new ConfigurationService();
   }
 
   initialize(): void {
@@ -128,8 +133,33 @@ export class DatabaseInitializer {
       console.log('🌱 NAS Cloud database seeded with default roles');
     }
 
+    // Seed default configurations
+    this.seedDefaultConfigurations();
+
     // Seed initial users from config
     this.seedInitialUsers();
+  }
+
+  private seedDefaultConfigurations(): void {
+    try {
+      // Set default upload path if not exists
+      const uploadPath = this.configService.getConfigValue('upload_path');
+      if (!uploadPath) {
+        // Use absolute path to uploads directory in project root
+        const defaultUploadPath = path.resolve(process.cwd(), 'uploads');
+        
+        // Ensure uploads directory exists
+        if (!fs.existsSync(defaultUploadPath)) {
+          fs.mkdirSync(defaultUploadPath, { recursive: true });
+          console.log(`📁 Created uploads directory: ${defaultUploadPath}`);
+        }
+        
+        this.configService.setUploadPath(defaultUploadPath);
+        console.log(`📁 Default upload path set to: ${defaultUploadPath}`);
+      }
+    } catch (error) {
+      console.error('❌ Error seeding default configurations:', error);
+    }
   }
 
   private seedInitialUsers(): void {

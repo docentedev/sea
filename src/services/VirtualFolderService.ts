@@ -20,6 +20,9 @@ export class VirtualFolderService {
       throw new Error('Folder name cannot contain path separators');
     }
 
+    // Normalize parent_path: null or '/' both mean root
+    const normalizedParentPath = (data.parent_path === '/' || data.parent_path === null) ? null : data.parent_path;
+
     // Check if folder already exists at this path
     const existingFolder = await this.folderRepo.findByPath(data.path);
     if (existingFolder) {
@@ -27,14 +30,17 @@ export class VirtualFolderService {
     }
 
     // Validate parent path exists if provided
-    if (data.parent_path && data.parent_path !== '/') {
-      const parentFolder = await this.folderRepo.findByPath(data.parent_path);
+    if (normalizedParentPath && normalizedParentPath !== '/') {
+      const parentFolder = await this.folderRepo.findByPath(normalizedParentPath);
       if (!parentFolder) {
         throw new Error('Parent folder does not exist');
       }
     }
 
-    return await this.folderRepo.create(data);
+    return await this.folderRepo.create({
+      ...data,
+      parent_path: normalizedParentPath
+    });
   }
 
   async getFolderById(id: number): Promise<Folder | null> {
@@ -50,15 +56,18 @@ export class VirtualFolderService {
   }
 
   async getFolderContents(folderPath: string | null, userId: number): Promise<FolderContent> {
+    // Normalize folderPath: '/' and null both mean root
+    const normalizedFolderPath = (folderPath === '/' || folderPath === null) ? null : folderPath;
+
     // Validate that the folder exists if path is provided
-    if (folderPath && folderPath !== '/') {
-      const folder = await this.folderRepo.findByPath(folderPath);
+    if (normalizedFolderPath && normalizedFolderPath !== '/') {
+      const folder = await this.folderRepo.findByPath(normalizedFolderPath);
       if (!folder) {
         throw new Error('Folder not found');
       }
     }
 
-    return await this.folderRepo.getFolderContents(folderPath, userId);
+    return await this.folderRepo.getFolderContents(normalizedFolderPath, userId);
   }
 
   async updateFolder(id: number, data: UpdateFolderData): Promise<Folder | null> {

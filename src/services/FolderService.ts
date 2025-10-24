@@ -1,5 +1,9 @@
 import { ConfigurationService } from './ConfigurationService.js';
 import { FileService } from './FileService.js';
+import { FolderRepository } from '../repositories/FolderRepository.js';
+import { FileRepository } from '../repositories/FileRepository.js';
+import { DatabaseConnection } from '../database/connection.js';
+import { DatabaseSync } from 'node:sqlite';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -14,10 +18,16 @@ export interface FolderInfo {
 export class FolderService {
   private configService: ConfigurationService;
   private fileService: FileService;
+  private folderRepo: FolderRepository;
+  private fileRepo: FileRepository;
+  private db: DatabaseSync;
 
   constructor() {
     this.configService = new ConfigurationService();
     this.fileService = new FileService();
+    this.db = DatabaseConnection.getConnection();
+    this.folderRepo = new FolderRepository(this.db);
+    this.fileRepo = new FileRepository(this.db);
   }
 
   // Folder creation
@@ -45,21 +55,55 @@ export class FolderService {
     return fullPath;
   }
 
-  // Folder deletion (recursive)
+    // Folder deletion (recursive) - for virtual folders
   async deleteFolder(folderPath: string): Promise<boolean> {
     if (!folderPath || folderPath.trim().length === 0) {
       throw new Error('Folder path is required');
     }
 
-    const basePath = this.configService.getUploadPath();
-    const fullPath = path.join(basePath, folderPath);
+    // Normalize path to ensure it starts with /
+    const normalizedPath = folderPath.startsWith('/') ? folderPath : `/${folderPath}`;
 
-    // Prevent deletion of root upload directory
-    if (fullPath === basePath) {
-      throw new Error('Cannot delete root upload directory');
+    // Prevent deletion of root directory
+    if (normalizedPath === '/') {
+      throw new Error('Cannot delete root directory');
     }
 
-    return this.fileService.deleteFolder(folderPath);
+    // Find the folder in database
+    const folder = await this.folderRepo.findByPath(normalizedPath);
+    if (!folder) {
+      throw new Error('Folder not found');
+    }
+
+    // Delete all subfolders recursively
+    const subfolders = await this.folderRepo.findByParentPath(normalizedPath, folder.user_id);
+    for (const subfolder of subfolders) {
+      await this.deleteFolder(subfolder.path); // Recursive call
+    }
+
+    // Delete all files in this folder and subfolders recursively
+    const allFiles = await this.getAllFilesInFolderRecursive(normalizedPath, folder.user_id);
+    console.log(`🗂️ Found ${allFiles.length} files to delete in folder ${normalizedPath}`);
+    for (const file of allFiles) {
+      console.log(`🗂️ Deleting file from DB: ${file.id}, path: ${file.path}`);
+      await this.fileRepo.delete(file.id);
+      // Also delete physical file if it exists
+      try {
+        // file.path contains the absolute path to the physical file
+        if (fs.existsSync(file.path)) {
+          fs.unlinkSync(file.path);
+          console.log('🗂️ Successfully deleted physical file:', file.path);
+        } else {
+          console.warn('Physical file not found at path:', file.path);
+        }
+      } catch (error) {
+        console.error('Failed to delete physical file:', file.path, error);
+      }
+    }
+
+    // Delete the folder itself
+    const deleted = await this.folderRepo.deleteByPath(normalizedPath);
+    return deleted;
   }
 
   // List folders
@@ -178,5 +222,11 @@ export class FolderService {
     } catch (error) {
       return false;
     }
+  }
+
+  // Get all files in a folder and its subfolders recursively
+  private async getAllFilesInFolderRecursive(folderPath: string, userId: number): Promise<import('../models/File').File[]> {
+    // Find all files where virtual_folder_path matches the folder path or starts with folderPath/
+    return this.fileRepo.findByVirtualFolderPathRecursive(folderPath, userId);
   }
 }

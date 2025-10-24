@@ -84,8 +84,9 @@ export class FolderRepository {
     let sql: string;
     let params: any[];
 
-    if (parentPath === null) {
-      sql = `SELECT * FROM folders WHERE parent_path IS NULL AND user_id = ? ORDER BY name`;
+    if (parentPath === null || parentPath === '/') {
+      // For root folders, find folders with parent_path IS NULL
+      sql = `SELECT * FROM folders WHERE (parent_path IS NULL OR parent_path = '/') AND user_id = ? ORDER BY name`;
       params = [userId];
     } else {
       sql = `SELECT * FROM folders WHERE parent_path = ? AND user_id = ? ORDER BY name`;
@@ -118,8 +119,19 @@ export class FolderRepository {
   }
 
   private async getFilesInFolder(folderPath: string | null, userId: number): Promise<File[]> {
-    const sql = `SELECT * FROM files WHERE virtual_folder_path = ? AND user_id = ? ORDER BY filename`;
-    const rows = this.db.prepare(sql).all(folderPath || '/', userId) as any[];
+    let sql: string;
+    let params: any[];
+
+    if (folderPath === null || folderPath === '/') {
+      // For root folder, find files with virtual_folder_path = '/' or virtual_folder_path IS NULL
+      sql = `SELECT * FROM files WHERE (virtual_folder_path = '/' OR virtual_folder_path IS NULL) AND user_id = ? ORDER BY filename`;
+      params = [userId];
+    } else {
+      sql = `SELECT * FROM files WHERE virtual_folder_path = ? AND user_id = ? ORDER BY filename`;
+      params = [folderPath, userId];
+    }
+
+    const rows = this.db.prepare(sql).all(...params) as any[];
 
     return rows.map(row => ({
       id: row.id,
