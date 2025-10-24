@@ -1,6 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { apiService } from '../services/api';
-import type { Folder, FileInfo, FolderContent } from '../types/api';
+import React, { useState } from 'react';
+import type { Folder, FileInfo } from '../types/api';
+import { useFileBrowser } from '../hooks/useFileBrowser';
+import { useFileUpload } from '../hooks/useFileUpload';
+import { useFolderOperations } from '../hooks/useFolderOperations';
+import { Breadcrumb } from './Breadcrumb';
+import { CreateFolderModal } from './CreateFolderModal';
+import { UploadModal } from './UploadModal';
+import { DeleteModal } from './DeleteModal';
+import { FileList } from './FileList';
 
 interface FileBrowserProps {
   onFileSelect?: (file: FileInfo) => void;
@@ -13,74 +20,65 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   onFolderSelect,
   allowSelection = false
 }) => {
-  const [currentPath, setCurrentPath] = useState<string>('/');
-  const [folderContent, setFolderContent] = useState<FolderContent | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  const [showCreateFolderModal, setShowCreateFolderModal] = useState(false);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadError, setUploadError] = useState<string>('');
-  const [uploadSuccess, setUploadSuccess] = useState<string>('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const dropZoneRef = useRef<HTMLDivElement>(null);
-  const [newFolderName, setNewFolderName] = useState('');
-  const [creatingFolder, setCreatingFolder] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState<{type: 'file' | 'folder', id: number, name: string, path?: string} | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  const {
+    currentPath,
+    folderContent,
+    loading,
+    error,
+    navigateToPath,
+    navigateToParent,
+    getBreadcrumbs,
+    handleBreadcrumbClick,
+    loadFolderContent
+  } = useFileBrowser();
+
+  const {
+    showUploadModal,
+    selectedFiles,
+    uploading,
+    uploadProgress,
+    uploadError,
+    uploadSuccess,
+    fileInputRef,
+    dropZoneRef,
+    handleFileSelect,
+    removeFile,
+    handleDragOver,
+    handleDragLeave,
+    handleDrop,
+    handleUpload,
+    handleCancelUpload,
+    openUploadModal
+  } = useFileUpload(currentPath, () => {
     loadFolderContent(currentPath);
-  }, [currentPath]);
+  });
 
-  // Initialize path from URL on mount
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pathParam = urlParams.get('path');
-    if (pathParam) {
-      setCurrentPath(decodeURIComponent(pathParam));
-    }
-  }, []);
-
-  // Update URL when path changes
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (currentPath === '/') {
-      url.searchParams.delete('path');
-    } else {
-      url.searchParams.set('path', encodeURIComponent(currentPath));
-    }
-    window.history.replaceState({}, '', url.toString());
-  }, [currentPath]);
-
-  const loadFolderContent = async (path: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await apiService.getFolderContents(path);
-      if (response.success) {
-        setFolderContent(response.data);
-      } else {
-        setError('Failed to load folder content');
-      }
-    } catch (err) {
-      const error = err as Error;
-      setError(error.message || 'Failed to load folder content');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    showCreateFolderModal,
+    newFolderName,
+    creatingFolder,
+    showDeleteModal,
+    itemToDelete,
+    deleting,
+    setNewFolderName,
+    handleCreateFolder,
+    handleCancelCreateFolder,
+    handleDeleteClick,
+    handleConfirmDelete,
+    handleCancelDelete,
+    openCreateFolderModal
+  } = useFolderOperations(currentPath, () => {
+    loadFolderContent(currentPath);
+  });
 
   const handleFolderClick = (folder: Folder) => {
     if (onFolderSelect) {
       onFolderSelect(folder);
     }
     if (!allowSelection) {
-      setCurrentPath(folder.path);
+      navigateToPath(folder.path);
     }
   };
 
@@ -102,191 +100,12 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     setSelectedItems(newSelected);
   };
 
-  const navigateToParent = () => {
-    if (currentPath !== '/' && folderContent && folderContent.parent_path !== null) {
-      setCurrentPath(folderContent.parent_path);
-    } else {
-      setCurrentPath('/');
-    }
-  };
-
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const getBreadcrumbs = (): string[] => {
-    if (currentPath === '/') return ['/'];
-    return ['/', ...currentPath.split('/').filter(p => p.length > 0)];
-  };
-
-  const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) {
-      setError('Folder name cannot be empty');
-      return;
-    }
-
-    setCreatingFolder(true);
-    setError(null);
-
-    try {
-      const folderPath = currentPath === '/' ? `/${newFolderName}` : `${currentPath}/${newFolderName}`;
-      await apiService.createFolder(newFolderName, folderPath, currentPath === '/' ? undefined : currentPath);
-      
-      // Reload folder content
-      await loadFolderContent(currentPath);
-      
-      setShowCreateFolderModal(false);
-      setNewFolderName('');
-    } catch (err) {
-      const error = err as Error;
-      setError(error.message || 'Failed to create folder');
-    } finally {
-      setCreatingFolder(false);
-    }
-  };
-
-  const handleCancelCreateFolder = () => {
-    setShowCreateFolderModal(false);
-    setNewFolderName('');
-    setError(null);
-  };
-
-  const handleDeleteClick = (type: 'file' | 'folder', id: number, name: string, path?: string) => {
-    setItemToDelete({ type, id, name, path });
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!itemToDelete) return;
-
-    setDeleting(true);
-    try {
-      if (itemToDelete.type === 'file') {
-        await apiService.deleteFile(itemToDelete.id);
-      } else if (itemToDelete.type === 'folder' && itemToDelete.path) {
-        await apiService.deleteFolder(itemToDelete.path);
-      }
-      
-      // Reload folder content to reflect changes
-      await loadFolderContent(currentPath);
-      setShowDeleteModal(false);
-      setItemToDelete(null);
-    } catch (err) {
-      const error = err as Error;
-      setError(error.message || `Failed to delete ${itemToDelete.type}`);
-    } finally {
-      setDeleting(false);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-    setItemToDelete(null);
-    setDeleting(false);
-  };
-
-  const handleFileSelect = (files: FileList | null) => {
-    if (!files) return;
-    const fileArray = Array.from(files);
-    setSelectedFiles(prev => [...prev, ...fileArray]);
-    setUploadError('');
-  };
-
-  const removeFile = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropZoneRef.current) {
-      dropZoneRef.current.classList.add('border-blue-500', 'bg-blue-50');
-    }
-  };
-
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropZoneRef.current) {
-      dropZoneRef.current.classList.remove('border-blue-500', 'bg-blue-50');
-    }
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    if (dropZoneRef.current) {
-      dropZoneRef.current.classList.remove('border-blue-500', 'bg-blue-50');
-    }
-    handleFileSelect(e.dataTransfer.files);
-  };
-
-  const handleUpload = async () => {
-    if (selectedFiles.length === 0) {
-      setUploadError('Please select at least one file');
-      return;
-    }
-
-    setUploading(true);
-    setUploadProgress(0);
-    setUploadError('');
-    setUploadSuccess('');
-
-    try {
-      const formData = new FormData();
-      selectedFiles.forEach(file => {
-        formData.append('files', file);
-      });
-
-      const progressInterval = setInterval(() => {
-        setUploadProgress(prev => Math.min(prev + 10, 90));
-      }, 200);
-
-      const response = await apiService.uploadFiles(formData, currentPath);
-
-      clearInterval(progressInterval);
-      setUploadProgress(100);
-
-      if (response.success) {
-        setUploadSuccess(`${selectedFiles.length} file(s) uploaded successfully`);
-        setSelectedFiles([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        // Reload folder content to show new files
-        await loadFolderContent(currentPath);
-      } else {
-        setUploadError('Failed to upload files');
-      }
-    } catch (err) {
-      const error = err as Error;
-      setUploadError(error.message || 'Failed to upload files');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-    }
-  };
-
-  const handleCancelUpload = () => {
-    setShowUploadModal(false);
-    setSelectedFiles([]);
-    setUploadError('');
-    setUploadSuccess('');
-    setUploadProgress(0);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleBreadcrumbClick = (index: number) => {
-    if (index === 0) {
-      setCurrentPath('/');
-    } else {
-      const breadcrumbs = getBreadcrumbs();
-      const path = '/' + breadcrumbs.slice(1, index + 1).join('/');
-      setCurrentPath(path);
-    }
   };
 
   if (loading) {
@@ -320,29 +139,10 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     <div className="bg-white shadow rounded-lg">
       {/* Breadcrumbs */}
       <div className="px-4 py-3 border-b border-gray-200">
-        <nav className="flex" aria-label="Breadcrumb">
-          <ol className="flex items-center space-x-2">
-            {getBreadcrumbs().map((crumb, index) => (
-              <li key={index} className="flex items-center">
-                {index > 0 && (
-                  <svg className="flex-shrink-0 h-4 w-4 text-gray-400 mx-2" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 00-1.414 0z" clipRule="evenodd" />
-                  </svg>
-                )}
-                <button
-                  onClick={() => handleBreadcrumbClick(index)}
-                  className={`text-sm font-medium ${
-                    index === getBreadcrumbs().length - 1
-                      ? 'text-gray-900'
-                      : 'text-blue-600 hover:text-blue-800'
-                  }`}
-                >
-                  {crumb}
-                </button>
-              </li>
-            ))}
-          </ol>
-        </nav>
+        <Breadcrumb
+          breadcrumbs={getBreadcrumbs()}
+          onBreadcrumbClick={handleBreadcrumbClick}
+        />
       </div>
 
       {/* Toolbar */}
@@ -361,7 +161,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               </button>
             )}
             <button
-              onClick={() => setShowCreateFolderModal(true)}
+              onClick={openCreateFolderModal}
               className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,7 +170,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               New Folder
             </button>
             <button
-              onClick={() => setShowUploadModal(true)}
+              onClick={openUploadModal}
               className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
             >
               <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -388,108 +188,17 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       {/* Content */}
       <div className="overflow-hidden">
         {folderContent && (folderContent.folders.length > 0 || folderContent.files.length > 0) ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 p-4">
-            {/* Folders */}
-            {folderContent.folders.map((folder) => (
-              <div
-                key={`folder-${folder.id}`}
-                className={`group p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
-                  selectedItems.has(`folder-${folder.id}`) ? 'bg-blue-50 border-blue-300' : ''
-                }`}
-                onClick={() => handleFolderClick(folder)}
-                onDoubleClick={() => !allowSelection && setCurrentPath(folder.path)}
-              >
-                <div className="flex flex-col items-center text-center relative">
-                  {allowSelection && (
-                    <input
-                      type="checkbox"
-                      className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      checked={selectedItems.has(`folder-${folder.id}`)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleItemSelect(`folder-${folder.id}`);
-                      }}
-                    />
-                  )}
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick('folder', folder.id, folder.name, folder.path);
-                    }}
-                    className="absolute top-1 right-1 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete folder"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                  <svg className="flex-shrink-0 h-8 w-8 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
-                  </svg>
-                  <div className="min-w-0 flex-1 max-w-full">
-                    <p 
-                      className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
-                      title={folder.name}
-                    >
-                      {folder.name}
-                    </p>
-                    <p className="text-xs text-gray-500">Folder</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Files */}
-            {folderContent.files.map((file) => (
-              <div
-                key={`file-${file.id}`}
-                className={`group p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
-                  selectedItems.has(`file-${file.id}`) ? 'bg-blue-50 border-blue-300' : ''
-                }`}
-                onClick={() => handleFileClick(file)}
-              >
-                <div className="flex flex-col items-center text-center relative">
-                  {allowSelection && (
-                    <input
-                      type="checkbox"
-                      className="mb-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      checked={selectedItems.has(`file-${file.id}`)}
-                      onChange={(e) => {
-                        e.stopPropagation();
-                        handleItemSelect(`file-${file.id}`);
-                      }}
-                    />
-                  )}
-                  {/* Delete button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteClick('file', file.id, file.original_filename);
-                    }}
-                    className="absolute top-1 right-1 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                    title="Delete file"
-                  >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                  <svg className="flex-shrink-0 h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  <div className="min-w-0 flex-1 max-w-full">
-                    <p 
-                      className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
-                      title={file.original_filename}
-                    >
-                      {file.original_filename}
-                    </p>
-                    <p className="text-xs text-gray-500">{file.mime_type.split('/')[0]} • {formatFileSize(file.size)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <FileList
+            folders={folderContent.folders}
+            files={folderContent.files}
+            allowSelection={allowSelection}
+            selectedItems={selectedItems}
+            onFolderClick={handleFolderClick}
+            onFileClick={handleFileClick}
+            onItemSelect={handleItemSelect}
+            onDeleteClick={handleDeleteClick}
+            formatFileSize={formatFileSize}
+          />
         ) : (
           <div className="text-center py-12">
             <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -502,203 +211,41 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
         )}
       </div>
 
-      {/* Create Folder Modal */}
-      {showCreateFolderModal && (
-        <div className="fixed inset-0 bg-black/60 overflow-y-auto h-full w-full z-50" onClick={() => setShowCreateFolderModal(false)}>
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Folder</h3>
-              <div className="mb-4">
-                <label htmlFor="folderName" className="block text-sm font-medium text-gray-700 mb-2">
-                  Folder Name
-                </label>
-                <input
-                  type="text"
-                  id="folderName"
-                  value={newFolderName}
-                  onChange={(e) => setNewFolderName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter folder name"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      handleCreateFolder();
-                    } else if (e.key === 'Escape') {
-                      handleCancelCreateFolder();
-                    }
-                  }}
-                  autoFocus
-                />
-              </div>
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={handleCancelCreateFolder}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  disabled={creatingFolder}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleCreateFolder}
-                  disabled={creatingFolder || !newFolderName.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {creatingFolder ? 'Creating...' : 'Create'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modals */}
+      <CreateFolderModal
+        isOpen={showCreateFolderModal}
+        folderName={newFolderName}
+        onFolderNameChange={setNewFolderName}
+        onCreate={handleCreateFolder}
+        onCancel={handleCancelCreateFolder}
+        creating={creatingFolder}
+      />
 
-      {/* Upload Modal */}
-      {showUploadModal && (
-        <div className="fixed inset-0 bg-black/60 overflow-y-auto h-full w-full z-50" onClick={() => setShowUploadModal(false)}>
-          <div className="relative top-10 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Upload Files</h3>
-              
-              {/* Drop Zone */}
-              <div
-                ref={dropZoneRef}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 transition-colors cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-                <p className="mt-2 text-sm text-gray-600">
-                  Drag and drop files here, or click to select files
-                </p>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => handleFileSelect(e.target.files)}
-                />
-              </div>
+      <UploadModal
+        isOpen={showUploadModal}
+        selectedFiles={selectedFiles}
+        uploading={uploading}
+        uploadProgress={uploadProgress}
+        uploadError={uploadError}
+        uploadSuccess={uploadSuccess}
+        fileInputRef={fileInputRef}
+        dropZoneRef={dropZoneRef}
+        onFileSelect={handleFileSelect}
+        onRemoveFile={removeFile}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        onUpload={handleUpload}
+        onCancel={handleCancelUpload}
+      />
 
-              {/* Selected Files */}
-              {selectedFiles.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">Selected Files:</h4>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {selectedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
-                        <div className="flex-1 min-w-0 max-w-full">
-                          <p 
-                            className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
-                            title={file.name}
-                          >
-                            {file.name}
-                          </p>
-                          <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
-                        </div>
-                        <button
-                          onClick={() => removeFile(index)}
-                          className="ml-2 text-red-600 hover:text-red-800"
-                        >
-                          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Progress Bar */}
-              {uploading && (
-                <div className="mt-4">
-                  <div className="bg-gray-200 rounded-full h-2">
-                    <div
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${uploadProgress}%` }}
-                    ></div>
-                  </div>
-                  <p className="text-sm text-gray-600 mt-1">Uploading... {uploadProgress}%</p>
-                </div>
-              )}
-
-              {/* Messages */}
-              {uploadError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-                  <p className="text-sm text-red-800">{uploadError}</p>
-                </div>
-              )}
-              {uploadSuccess && (
-                <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md">
-                  <p className="text-sm text-green-800">{uploadSuccess}</p>
-                </div>
-              )}
-
-              {/* Buttons */}
-              <div className="flex justify-end space-x-2 mt-6">
-                <button
-                  onClick={handleCancelUpload}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  disabled={uploading}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading || selectedFiles.length === 0}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''}`}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && itemToDelete && (
-        <div className="fixed inset-0 bg-black/60 overflow-y-auto h-full w-full z-50" onClick={() => setShowDeleteModal(false)}>
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
-            <div className="mt-3">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-lg font-medium text-gray-900">Delete {itemToDelete.type}</h3>
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-500">
-                      Are you sure you want to delete <span className="font-medium text-gray-900">"{itemToDelete.name}"</span>?
-                      {itemToDelete.type === 'folder' && ' This will also delete all files and subfolders inside it.'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-2 mt-6">
-                <button
-                  onClick={handleCancelDelete}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                  disabled={deleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleConfirmDelete}
-                  disabled={deleting}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
-                >
-                  {deleting ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <DeleteModal
+        isOpen={showDeleteModal}
+        itemToDelete={itemToDelete}
+        deleting={deleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 };
