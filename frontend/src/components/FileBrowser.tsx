@@ -526,7 +526,12 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                     {selectedFiles.map((file, index) => (
                       <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-md">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
+                          <p 
+                            className="text-sm font-medium text-gray-900 overflow-hidden text-ellipsis whitespace-nowrap w-full" 
+                            title={file.name}
+                          >
+                            {file.name}
+                          </p>
                           <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
                         </div>
                         <button
