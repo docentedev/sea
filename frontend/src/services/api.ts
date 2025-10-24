@@ -170,6 +170,15 @@ class ApiService {
     });
   }
 
+  async deleteFolder(folderPath: string): Promise<void> {
+    const params = new URLSearchParams({
+      path: folderPath,
+    });
+    return this.request<void>(`/api/folders?${params}`, {
+      method: 'DELETE',
+    });
+  }
+
   async getFileUploadConfig(): Promise<FileUploadConfig> {
     const response = await this.request<ApiResponse<FileUploadConfig>>('/api/files/upload/config');
     return response.data;

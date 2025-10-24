@@ -29,6 +29,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const [newFolderName, setNewFolderName] = useState('');
   const [creatingFolder, setCreatingFolder] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{type: 'file' | 'folder', id: number, name: string, path?: string} | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadFolderContent(currentPath);
@@ -150,6 +153,40 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     setShowCreateFolderModal(false);
     setNewFolderName('');
     setError(null);
+  };
+
+  const handleDeleteClick = (type: 'file' | 'folder', id: number, name: string, path?: string) => {
+    setItemToDelete({ type, id, name, path });
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+
+    setDeleting(true);
+    try {
+      if (itemToDelete.type === 'file') {
+        await apiService.deleteFile(itemToDelete.id);
+      } else if (itemToDelete.type === 'folder' && itemToDelete.path) {
+        await apiService.deleteFolder(itemToDelete.path);
+      }
+      
+      // Reload folder content to reflect changes
+      await loadFolderContent(currentPath);
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+    } catch (err) {
+      const error = err as Error;
+      setError(error.message || `Failed to delete ${itemToDelete.type}`);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setItemToDelete(null);
+    setDeleting(false);
   };
 
   const handleFileSelect = (files: FileList | null) => {
@@ -356,13 +393,13 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             {folderContent.folders.map((folder) => (
               <div
                 key={`folder-${folder.id}`}
-                className={`p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`group p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
                   selectedItems.has(`folder-${folder.id}`) ? 'bg-blue-50 border-blue-300' : ''
                 }`}
                 onClick={() => handleFolderClick(folder)}
                 onDoubleClick={() => !allowSelection && setCurrentPath(folder.path)}
               >
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center relative">
                   {allowSelection && (
                     <input
                       type="checkbox"
@@ -374,6 +411,19 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                       }}
                     />
                   )}
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick('folder', folder.id, folder.name, folder.path);
+                    }}
+                    className="absolute top-1 right-1 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete folder"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                   <svg className="flex-shrink-0 h-8 w-8 text-blue-500 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
                   </svg>
@@ -394,12 +444,12 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             {folderContent.files.map((file) => (
               <div
                 key={`file-${file.id}`}
-                className={`p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
+                className={`group p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors ${
                   selectedItems.has(`file-${file.id}`) ? 'bg-blue-50 border-blue-300' : ''
                 }`}
                 onClick={() => handleFileClick(file)}
               >
-                <div className="flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center relative">
                   {allowSelection && (
                     <input
                       type="checkbox"
@@ -411,6 +461,19 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                       }}
                     />
                   )}
+                  {/* Delete button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteClick('file', file.id, file.original_filename);
+                    }}
+                    className="absolute top-1 right-1 p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    title="Delete file"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                   <svg className="flex-shrink-0 h-8 w-8 text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
@@ -588,6 +651,48 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                   className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
                   {uploading ? 'Uploading...' : `Upload ${selectedFiles.length} file${selectedFiles.length !== 1 ? 's' : ''}`}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && itemToDelete && (
+        <div className="fixed inset-0 bg-black/60 overflow-y-auto h-full w-full z-50" onClick={() => setShowDeleteModal(false)}>
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white" onClick={(e) => e.stopPropagation()}>
+            <div className="mt-3">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-lg font-medium text-gray-900">Delete {itemToDelete.type}</h3>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete <span className="font-medium text-gray-900">"{itemToDelete.name}"</span>?
+                      {itemToDelete.type === 'folder' && ' This will also delete all files and subfolders inside it.'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 mt-6">
+                <button
+                  onClick={handleCancelDelete}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmDelete}
+                  disabled={deleting}
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {deleting ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>
