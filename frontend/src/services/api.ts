@@ -201,6 +201,11 @@ class ApiService {
   }
 
   // Folder methods
+  async getAllFolders(): Promise<Folder[]> {
+    const response = await this.request<{ success: boolean; data: Folder[] }>('/api/virtual-folders');
+    return response.data;
+  }
+
   async getFolderContents(folderPath: string): Promise<FolderContentResponse> {
     const params = new URLSearchParams({
       parent_path: folderPath,

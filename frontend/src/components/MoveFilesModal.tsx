@@ -1,10 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { apiService } from '../services/api';
 import type { Folder } from '../types/api';
+import { FolderTreeSelector } from './FolderTreeSelector';
 
 interface MoveFilesModalProps {
   isOpen: boolean;
   fileIds: number[];
+  currentPath: string;
   onMove: (fileIds: number[], destinationPath: string) => void;
   onCancel: () => void;
   moving: boolean;
@@ -15,6 +17,7 @@ interface MoveFilesModalProps {
 export const MoveFilesModal: React.FC<MoveFilesModalProps> = ({
   isOpen,
   fileIds,
+  currentPath,
   onMove,
   onCancel,
   moving,
@@ -25,36 +28,43 @@ export const MoveFilesModal: React.FC<MoveFilesModalProps> = ({
   const [selectedPath, setSelectedPath] = useState<string>('/');
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadFolders();
-    }
-  }, [isOpen]);
-
-  const loadFolders = async () => {
+  const loadAllFolders = useCallback(async () => {
     setLoading(true);
     try {
-      // Load all user folders
-      const response = await apiService.getFolderContents('/');
-      if (response.success) {
-        setFolders(response.data.folders);
-      }
+      // Get all user folders directly from the API
+      const folders = await apiService.getAllFolders();
+      console.log('All folders loaded:', folders);
+      console.log('Folders with details:', folders.map(f => ({
+        id: f.id,
+        name: f.name,
+        path: f.path,
+        parent_path: f.parent_path,
+        parent_path_type: typeof f.parent_path
+      })));
+      // Don't filter out the current directory - we need to show its children
+      // but make the current directory non-selectable in the tree
+      const availableFolders = folders;
+      console.log('Available folders after filtering:', availableFolders);
+      console.log('Current path:', currentPath);
+      setFolders(availableFolders);
     } catch (error) {
       console.error('Error loading folders:', error);
+      setFolders([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPath]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadAllFolders();
+    }
+  }, [isOpen, loadAllFolders]);
 
   const handleMove = () => {
     if (fileIds.length > 0 && selectedPath) {
       onMove(fileIds, selectedPath);
     }
-  };
-
-  const getDisplayPath = (path: string) => {
-    if (path === '/') return 'Root Directory';
-    return path;
   };
 
   if (!isOpen) return null;
@@ -107,24 +117,24 @@ export const MoveFilesModal: React.FC<MoveFilesModalProps> = ({
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
                 <span className="ml-2 text-gray-600">Loading folders...</span>
               </div>
+            ) : folders.length === 0 ? (
+              <div className="text-center py-4 text-gray-500">
+                No folders available to move to.
+                <br />
+                <small className="text-xs">Create some folders first to see them here.</small>
+              </div>
             ) : (
-              <select
-                value={selectedPath}
-                onChange={(e) => setSelectedPath(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              <FolderTreeSelector
+                folders={folders}
+                selectedPath={selectedPath}
+                onSelectPath={setSelectedPath}
                 disabled={moving}
-              >
-                <option value="/">📁 Root Directory</option>
-                {folders.map((folder) => (
-                  <option key={folder.id} value={folder.path}>
-                    📁 {folder.name}
-                  </option>
-                ))}
-              </select>
+                currentPath={currentPath}
+              />
             )}
 
             <p className="mt-2 text-sm text-gray-600">
-              Selected: <span className="font-medium">{getDisplayPath(selectedPath)}</span>
+              Selected destination: <span className="font-medium">{selectedPath === '/' ? 'Root Directory' : selectedPath}</span>
             </p>
           </div>
 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { Folder, FileInfo } from '../types/api';
+import { apiService } from '../services/api';
 import { useFileBrowser } from '../hooks/useFileBrowser';
 import { useFileUpload } from '../hooks/useFileUpload';
 import { useFolderOperations } from '../hooks/useFolderOperations';
@@ -10,6 +11,7 @@ import { UploadModal } from './UploadModal';
 import { DeleteModal } from './DeleteModal';
 import { FileList } from './FileList';
 import { MoveFilesModal } from './MoveFilesModal';
+import { FilePreviewModal, canPreviewFile } from './viewers';
 
 interface FileBrowserProps {
   onFileSelect?: (file: FileInfo) => void;
@@ -24,6 +26,8 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 }) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const {
     currentPath,
@@ -107,15 +111,57 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     if (onFolderSelect) {
       onFolderSelect(folder);
     }
-    if (!allowSelection) {
-      navigateToPath(folder.path);
-    }
+    navigateToPath(folder.path);
   };
 
   const handleFileClick = (file: FileInfo) => {
+    // Check if file can be previewed
+    if (canPreviewFile(file)) {
+      setPreviewFile(file);
+      setShowPreviewModal(true);
+      return;
+    }
+
+    // Otherwise, use the callback if provided
     if (onFileSelect) {
       onFileSelect(file);
     }
+  };
+
+  const handleDownloadClick = async (file: FileInfo) => {
+    try {
+      const blob = await apiService.downloadFile(file.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = file.original_filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      // TODO: Show error message to user
+    }
+  };
+
+  const handleDownloadMultiple = async () => {
+    const selectedFiles = folderContent?.files.filter(file => selectedItems.has(file.id)) || [];
+
+    // For now, only download files (folders would require ZIP creation)
+    for (const file of selectedFiles) {
+      try {
+        await handleDownloadClick(file);
+        // Add small delay between downloads to avoid overwhelming the browser
+        await new Promise(resolve => setTimeout(resolve, 500));
+      } catch (error) {
+        console.error(`Error downloading file ${file.original_filename}:`, error);
+        // Continue with other files even if one fails
+      }
+    }
+
+    // Clear selection after download
+    setSelectedItems(new Set());
   };
 
   const handleItemSelect = (itemId: number) => {
@@ -209,16 +255,27 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               Upload Files
             </button>
             {selectedItems.size > 0 && (
-              <button
-                onClick={openMoveModal}
-                disabled={movingFiles}
-                className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                </svg>
-                Move {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
-              </button>
+              <>
+                <button
+                  onClick={handleDownloadMultiple}
+                  className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                >
+                  <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Download {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
+                </button>
+                <button
+                  onClick={openMoveModal}
+                  disabled={movingFiles}
+                  className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                  </svg>
+                  Move {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
+                </button>
+              </>
             )}
           </div>
           <div className="flex items-center space-x-2">
@@ -301,6 +358,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
             onFileClick={handleFileClick}
             onItemSelect={handleItemSelect}
             onDeleteClick={handleDeleteClick}
+            onDownloadClick={handleDownloadClick}
             formatFileSize={formatFileSize}
             viewMode={viewMode}
           />
@@ -355,11 +413,21 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       <MoveFilesModal
         isOpen={showMoveModal}
         fileIds={Array.from(selectedItems)}
+        currentPath={currentPath}
         moving={movingFiles}
         moveError={moveError}
         moveSuccess={moveSuccess}
         onMove={moveFiles}
         onCancel={closeMoveModal}
+      />
+
+      <FilePreviewModal
+        file={previewFile}
+        isOpen={showPreviewModal}
+        onClose={() => {
+          setShowPreviewModal(false);
+          setPreviewFile(null);
+        }}
       />
     </div>
   );

@@ -10,6 +10,7 @@ interface FileListProps {
   onFileClick: (file: FileInfo) => void;
   onItemSelect: (itemId: number) => void;
   onDeleteClick: (type: 'file' | 'folder', id: number, name: string, path?: string) => void;
+  onDownloadClick: (file: FileInfo) => void;
   formatFileSize: (bytes: number) => string;
   viewMode?: 'list' | 'grid';
 }
@@ -23,6 +24,7 @@ export const FileList: React.FC<FileListProps> = ({
   onFileClick,
   onItemSelect,
   onDeleteClick,
+  onDownloadClick,
   formatFileSize,
   viewMode = 'list'
 }) => {
@@ -74,17 +76,26 @@ export const FileList: React.FC<FileListProps> = ({
             className={`grid grid-cols-12 gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer ${
               selectedItems.has(folder.id) ? 'bg-blue-50' : ''
             }`}
-            onClick={() => allowSelection ? onItemSelect(folder.id) : onFolderClick(folder)}
+            onClick={() => onFolderClick(folder)}
           >
             <div className="col-span-6 flex items-center">
               {allowSelection && (
-                <input
-                  type="checkbox"
-                  checked={selectedItems.has(folder.id)}
-                  onChange={() => onItemSelect(folder.id)}
-                  className="mr-3"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onItemSelect(folder.id);
+                  }}
+                  className={`mr-3 p-1 rounded ${
+                    selectedItems.has(folder.id)
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'hover:bg-gray-100 text-gray-400'
+                  }`}
+                  title="Select for move"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               )}
               <span className="text-xl mr-3">📁</span>
               <span className="font-medium text-gray-900">{folder.name}</span>
@@ -112,24 +123,43 @@ export const FileList: React.FC<FileListProps> = ({
             className={`grid grid-cols-12 gap-4 px-4 py-3 hover:bg-gray-50 cursor-pointer ${
               selectedItems.has(file.id) ? 'bg-blue-50' : ''
             }`}
-            onClick={() => allowSelection ? onItemSelect(file.id) : onFileClick(file)}
+            onClick={() => onFileClick(file)}
           >
             <div className="col-span-6 flex items-center">
               {allowSelection && (
-                <input
-                  type="checkbox"
-                  checked={selectedItems.has(file.id)}
-                  onChange={() => onItemSelect(file.id)}
-                  className="mr-3"
-                  onClick={(e) => e.stopPropagation()}
-                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onItemSelect(file.id);
+                  }}
+                  className={`mr-3 p-1 rounded ${
+                    selectedItems.has(file.id)
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'hover:bg-gray-100 text-gray-400'
+                  }`}
+                  title="Select for move"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
               )}
-              <span className="text-xl mr-3">{getFileIcon(file.original_filename)}</span>
+              <span className="text-xl mr-3">📄</span>
               <span className="font-medium text-gray-900">{file.original_filename}</span>
             </div>
             <div className="col-span-2 text-sm text-gray-500">{formatFileSize(file.size)}</div>
             <div className="col-span-2 text-sm text-gray-500">{formatDate(file.created_at)}</div>
             <div className="col-span-2 flex items-center space-x-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDownloadClick(file);
+                }}
+                className="text-blue-600 hover:text-blue-800 text-sm"
+                title="Download file"
+              >
+                Download
+              </button>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
