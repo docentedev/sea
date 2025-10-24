@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.4.0] - 2025-10-24
+
+### Added
+- **CodeViewer indentation preservation**: Fixed tabs and spaces preservation in code syntax highlighting using `whiteSpace: 'pre'` CSS property
+- **MarkdownViewer header support**: Added support for ####, #####, and ###### headers in markdown rendering
+- **Enhanced file viewers**: Improved CodeViewer and MarkdownViewer components for better file preview experience
+
+### Fixed
+- **CodeViewer whitespace handling**: Resolved issue where tabs and indentation were not displayed correctly in code files
+- **MarkdownViewer header rendering**: Fixed missing support for level 4, 5, and 6 headers in markdown files
+
+### Technical Details
+- **CodeViewer component**: Updated highlightCode function to preserve whitespace with CSS whiteSpace property
+- **MarkdownViewer component**: Extended markdownToHtml function to support all header levels (H1-H6)
+
 ## [4.3.0] - 2025-10-24
 
 ### Added

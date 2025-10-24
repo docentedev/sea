@@ -156,10 +156,15 @@ class ApiService {
     return response.json();
   }
 
-  async downloadFile(fileId: number): Promise<Blob> {
+  async downloadFile(fileId: number, action: 'download' | 'preview' = 'download'): Promise<Blob> {
     const token = localStorage.getItem('auth_token');
 
-    const response = await fetch(`${this.baseURL}/api/files/${fileId}/download`, {
+    const params = new URLSearchParams();
+    if (action) {
+      params.append('action', action);
+    }
+
+    const response = await fetch(`${this.baseURL}/api/files/${fileId}/download?${params}`, {
       headers: {
         'Authorization': token ? `Bearer ${token}` : '',
       },

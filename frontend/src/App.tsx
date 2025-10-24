@@ -46,17 +46,6 @@ function AppContent() {
           <div className="flex gap-5 ml-10">
             <NavLink href="/">Home</NavLink>
             <NavLink href="/browser">File Browser</NavLink>
-            <NavLink href="/health">System Health</NavLink>
-            {state.user?.role && (
-              typeof state.user.role === 'object' 
-                ? state.user.role.name === 'admin' 
-                : state.user.role === 'admin' || state.user.role.includes('admin')
-            ) && (
-              <>
-                <NavLink href="/users">Manage Users</NavLink>
-                <NavLink href="/config">Configuration</NavLink>
-              </>
-            )}
           </div>
 
           {/* User info and menu */}

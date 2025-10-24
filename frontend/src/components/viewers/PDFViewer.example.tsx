@@ -1,17 +1,22 @@
+// Example PDF Viewer - Uncomment and implement when needed
+/*
 import React, { useState } from 'react';
 import type { FileViewerProps } from './FileViewerRegistry';
 
-export const ImageViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
+export const PDFViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const handleImageLoad = () => {
+  // For PDF viewing, you might want to use a library like react-pdf
+  // or embed the PDF directly in an iframe
+
+  const handleLoad = () => {
     setLoading(false);
   };
 
-  const handleImageError = () => {
+  const handleError = () => {
     setLoading(false);
-    setError('Failed to load image');
+    setError('Failed to load PDF');
   };
 
   if (error) {
@@ -29,25 +34,36 @@ export const ImageViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
 
   return (
     <div className="flex flex-col items-center">
-      <div className="max-w-full max-h-[70vh] overflow-auto">
+      <div className="w-full max-w-4xl h-[70vh]">
         {loading && (
-          <div className="flex items-center justify-center h-64">
+          <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
           </div>
         )}
-        <img
+        <iframe
           src={fileUrl}
-          alt={file.original_filename}
-          className="max-w-full max-h-full object-contain"
-          style={{ maxWidth: '100%', maxHeight: '70vh', display: loading ? 'none' : 'block' }}
-          onLoad={handleImageLoad}
-          onError={handleImageError}
+          className="w-full h-full border rounded"
+          onLoad={handleLoad}
+          onError={handleError}
+          style={{ display: loading ? 'none' : 'block' }}
+          title={`Preview of ${file.original_filename}`}
         />
       </div>
       <div className="mt-4 text-sm text-gray-500 text-center">
         <p>{file.original_filename}</p>
-        <p>{file.size ? `${(file.size / 1024).toFixed(2)} KB` : ''}</p>
+        <p>{file.size ? `${(file.size / (1024 * 1024)).toFixed(2)} MB` : ''}</p>
       </div>
     </div>
   );
 };
+*/
+
+// To register the PDF viewer, add this to the registration section:
+/*
+fileViewerRegistry.register({
+  mimeTypes: ['application/pdf'],
+  extensions: ['pdf'],
+  component: PDFViewer,
+  priority: 10
+});
+*/

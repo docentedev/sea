@@ -1,60 +1,19 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import type { FileViewerProps } from './FileViewerRegistry';
-import { apiService } from '../../services/api';
 
-export const AudioViewer: React.FC<FileViewerProps> = ({ file }) => {
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+export const AudioViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+  const handleAudioLoad = () => {
+    setLoading(false);
+  };
 
-    const loadAudio = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const blob = await apiService.downloadFile(file.id);
-        if (isMounted) {
-          const url = URL.createObjectURL(blob);
-          setAudioUrl(url);
-        }
-      } catch (err) {
-        console.error('Error loading audio:', err);
-        if (isMounted) {
-          setError('Failed to load audio file');
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadAudio();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [file.id]);
-
-  // Cleanup URL when component unmounts or audioUrl changes
-  useEffect(() => {
-    return () => {
-      if (audioUrl) {
-        URL.revokeObjectURL(audioUrl);
-      }
-    };
-  }, [audioUrl]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-32">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
+  const handleAudioError = () => {
+    setLoading(false);
+    setError('Failed to load audio file');
+  };
 
   if (error) {
     return (
@@ -72,13 +31,20 @@ export const AudioViewer: React.FC<FileViewerProps> = ({ file }) => {
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="w-full max-w-md">
+        {loading && (
+          <div className="flex items-center justify-center h-16 mb-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-500"></div>
+          </div>
+        )}
         <audio
           ref={audioRef}
           controls
           className="w-full"
           preload="metadata"
+          onLoadedData={handleAudioLoad}
+          onError={handleAudioError}
         >
-          <source src={audioUrl!} type={file.mime_type || undefined} />
+          <source src={fileUrl} type={file.mime_type || undefined} />
           Your browser does not support the audio element.
         </audio>
       </div>

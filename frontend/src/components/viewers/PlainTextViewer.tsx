@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { FileViewerProps } from './FileViewerRegistry';
-import { apiService } from '../../services/api';
 
-export const PlainTextViewer: React.FC<FileViewerProps> = ({ file }) => {
+export const PlainTextViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -14,8 +13,11 @@ export const PlainTextViewer: React.FC<FileViewerProps> = ({ file }) => {
       try {
         setLoading(true);
         setError(null);
-        const blob = await apiService.downloadFile(file.id);
-        const text = await blob.text();
+        const response = await fetch(fileUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const text = await response.text();
         if (isMounted) {
           setContent(text);
         }
@@ -36,7 +38,7 @@ export const PlainTextViewer: React.FC<FileViewerProps> = ({ file }) => {
     return () => {
       isMounted = false;
     };
-  }, [file.id]);
+  }, [fileUrl]);
 
   if (loading) {
     return (

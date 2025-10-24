@@ -4,6 +4,7 @@ import { AuthService } from '../services/AuthService.js';
 import { ConfigurationService } from '../services/ConfigurationService.js';
 import { AuthUser } from '../types/index.js';
 import { Readable } from 'node:stream';
+import fs from 'node:fs';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -17,27 +18,32 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Middleware para verificar autenticación
   const requireAuth = async (request: any, reply: any) => {
+    // Check for Authorization header first
     const authHeader = request.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return reply.status(401).send({
-        success: false,
-        message: 'Authorization header required',
-        timestamp: new Date().toISOString()
-      });
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7);
+      const user = authService.verifyToken(token);
+      if (user) {
+        request.user = user;
+        return;
+      }
     }
 
-    const token = authHeader.substring(7);
-    const user = authService.verifyToken(token);
-
-    if (!user) {
-      return reply.status(401).send({
-        success: false,
-        message: 'Invalid or expired token',
-        timestamp: new Date().toISOString()
-      });
+    // Check for token in query parameters (for streaming URLs)
+    const queryToken = request.query.token;
+    if (queryToken) {
+      const user = authService.verifyToken(queryToken);
+      if (user) {
+        request.user = user;
+        return;
+      }
     }
 
-    request.user = user;
+    return reply.status(401).send({
+      success: false,
+      message: 'Authorization header or token parameter required',
+      timestamp: new Date().toISOString()
+    });
   };
 
   // Listar archivos del usuario
@@ -174,8 +180,51 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
+      const stat = fs.statSync(file.path);
+      const fileSize = stat.size;
+      const range = request.headers.range;
+      const { action } = request.query as { action?: string };
+
+      // Determine response type based on action parameter or range header
+      const isDownload = action === 'download';
+      const isStreaming = range || action === 'stream' || action === 'preview';
+
+      // Handle range requests for streaming
+      if (isStreaming && range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = (end - start) + 1;
+
+        // Create a new stream for the range
+        const rangeStream = fs.createReadStream(file.path, { start, end });
+
+        return reply
+          .status(206)
+          .header('Content-Range', `bytes ${start}-${end}/${fileSize}`)
+          .header('Accept-Ranges', 'bytes')
+          .header('Content-Length', chunksize)
+          .header('Content-Type', file.mime_type)
+          .header('Cache-Control', 'no-cache')
+          .send(rangeStream);
+      }
+
+      // For preview/streaming requests (full file, inline)
+      if (isStreaming) {
+        return reply
+          .header('Content-Type', file.mime_type)
+          .header('Content-Length', fileSize)
+          .header('Accept-Ranges', 'bytes')
+          .header('Cache-Control', 'no-cache')
+          .send(stream);
+      }
+
+      // For download requests (full file, attachment)
       return reply
         .header('Content-Type', file.mime_type)
+        .header('Content-Length', fileSize)
+        .header('Accept-Ranges', 'bytes')
+        .header('Cache-Control', 'no-cache')
         .header('Content-Disposition', `attachment; filename="${file.original_filename}"`)
         .send(stream);
     } catch (error) {

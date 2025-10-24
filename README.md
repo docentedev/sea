@@ -413,6 +413,20 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 📝 Changelog
 
+### [4.4.0] - 2025-10-24
+#### ✨ Added
+- **Preservación de indentación en CodeViewer**: Corregida la preservación de tabs y espacios en el resaltado de sintaxis de código usando propiedad CSS `whiteSpace: 'pre'`
+- **Soporte de headers en MarkdownViewer**: Agregado soporte para headers ####, ##### y ###### en el renderizado de markdown
+- **Visores de archivos mejorados**: Componentes CodeViewer y MarkdownViewer mejorados para una mejor experiencia de vista previa de archivos
+
+#### 🐛 Fixed
+- **Manejo de espacios en blanco en CodeViewer**: Resuelto problema donde tabs e indentación no se mostraban correctamente en archivos de código
+- **Renderizado de headers en MarkdownViewer**: Corregido soporte faltante para headers de nivel 4, 5 y 6 en archivos markdown
+
+#### 🛠️ Technical Details
+- **Componente CodeViewer**: Función highlightCode actualizada para preservar espacios en blanco con propiedad CSS whiteSpace
+- **Componente MarkdownViewer**: Función markdownToHtml extendida para soportar todos los niveles de headers (H1-H6)
+
 ### [4.3.0] - 2025-10-24
 #### ✨ Added
 - **Modos de vista de archivos**: Soporte para vistas de lista y cuadrícula para navegación de archivos
