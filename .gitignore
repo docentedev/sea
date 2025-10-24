@@ -66,9 +66,24 @@ jspm_packages/
 # TernJS port file
 .tern-port
 
+# Database files
+*.db
+*.db-shm
+*.db-wal
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
 # Build output
 dist/
 build/
+
+# Frontend build assets (generated files)
+public/assets/
+!public/assets/.gitkeep
+
+# Uploaded files (user content)
+uploads/
 
 # SEA (Single Executable Application) files
 sea-prep.blob
