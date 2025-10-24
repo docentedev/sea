@@ -5,7 +5,6 @@ import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { HealthPage } from './pages/HealthPage';
 import UserManagementPage from './pages/UserManagementPage';
-import { FileUploadPage } from './pages/FileUploadPage';
 import { FileBrowserPage } from './pages/FileBrowserPage';
 import { NavLink } from './components/NavLink';
 import { useState } from 'react';
@@ -45,7 +44,6 @@ function AppContent() {
 
           <div className="flex gap-5 ml-10">
             <NavLink href="/">Home</NavLink>
-            <NavLink href="/files">Upload Files</NavLink>
             <NavLink href="/browser">File Browser</NavLink>
             <NavLink href="/health">System Health</NavLink>
             {state.user?.role && (
@@ -94,7 +92,6 @@ function AppContent() {
         <Route path="/" component={HomePage} />
         <Route path="/health" component={HealthPage} />
         <Route path="/users" component={UserManagementPage} />
-        <Route path="/files" component={FileUploadPage} />
         <Route path="/browser" component={FileBrowserPage} />
       </main>
     </div>

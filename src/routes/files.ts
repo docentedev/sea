@@ -195,7 +195,16 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       // Los archivos están disponibles en request.body cuando attachFieldsToBody: true
       const body = request.body as any;
       const files = body.files || [];
-      const virtualFolderPath = body.virtual_folder_path || '/';
+      
+      // Handle virtual_folder_path - it might be an object with value property in multipart
+      let virtualFolderPath = '/';
+      if (body.virtual_folder_path) {
+        if (typeof body.virtual_folder_path === 'string') {
+          virtualFolderPath = body.virtual_folder_path;
+        } else if (body.virtual_folder_path.value) {
+          virtualFolderPath = body.virtual_folder_path.value;
+        }
+      }
 
       // Si files es un array, usarlo directamente, si no, convertirlo
       const fileArray = Array.isArray(files) ? files : [files];

@@ -23,10 +23,10 @@ export function HomePage() {
           <h3 className="text-xl font-semibold text-gray-800 mb-3">File Storage</h3>
           <p className="text-gray-600 mb-4">Manage your files and folders in the cloud</p>
           <button
-            onClick={() => navigate('/files')}
+            onClick={() => navigate('/browser')}
             className="px-4 py-2 bg-blue-500 text-white border-none rounded hover:bg-blue-600 cursor-pointer transition-colors"
           >
-            📁 Manage Files
+            📁 Browse & Upload Files
           </button>
         </div>
 

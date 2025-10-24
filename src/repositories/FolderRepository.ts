@@ -44,8 +44,13 @@ export class FolderRepository {
   }
 
   async findByPath(path: string): Promise<Folder | null> {
+    console.log('🔍 findByPath called with path:', path, 'type:', typeof path);
     const sql = `SELECT * FROM folders WHERE path = ?`;
+    console.log('🔍 Executing SQL:', sql, 'with param:', path);
     const row = this.db.prepare(sql).get(path) as any;
+    console.log('🔍 Query result:', row ? 'found' : 'not found');
+
+    if (!row) return null;
 
     if (!row) return null;
 
@@ -76,8 +81,18 @@ export class FolderRepository {
   }
 
   async findByParentPath(parentPath: string | null, userId: number): Promise<Folder[]> {
-    const sql = `SELECT * FROM folders WHERE parent_path IS ? AND user_id = ? ORDER BY name`;
-    const rows = this.db.prepare(sql).all(parentPath, userId) as any[];
+    let sql: string;
+    let params: any[];
+
+    if (parentPath === null) {
+      sql = `SELECT * FROM folders WHERE parent_path IS NULL AND user_id = ? ORDER BY name`;
+      params = [userId];
+    } else {
+      sql = `SELECT * FROM folders WHERE parent_path = ? AND user_id = ? ORDER BY name`;
+      params = [parentPath, userId];
+    }
+
+    const rows = this.db.prepare(sql).all(...params) as any[];
 
     return rows.map(row => ({
       id: row.id,

@@ -43,6 +43,9 @@ export class DatabaseInitializer {
   private migrateTables(): void {
     // Check and add missing columns
     this.addMissingColumns();
+    
+    // Migrate old path references from 'home' to '/'
+    this.migratePaths();
   }
 
   private addMissingColumns(): void {
@@ -53,6 +56,57 @@ export class DatabaseInitializer {
     if (!hasVirtualFolderPath) {
       this.db.exec('ALTER TABLE files ADD COLUMN virtual_folder_path TEXT DEFAULT "/"');
       console.log('🔧 Added missing virtual_folder_path column to files table');
+    }
+  }
+
+  private migratePaths(): void {
+    try {
+      // Update files table: change virtual_folder_path from 'home' or '/home' to '/'
+      const filesUpdated = this.db.prepare(`
+        UPDATE files 
+        SET virtual_folder_path = '/' 
+        WHERE virtual_folder_path IN ('home', '/home')
+      `).run();
+
+      if (filesUpdated.changes > 0) {
+        console.log(`🔄 Migrated ${filesUpdated.changes} files from 'home' path to '/'`);
+      }
+
+      // Update folders table: change path from '/home' to '/'
+      const foldersPathUpdated = this.db.prepare(`
+        UPDATE folders 
+        SET path = REPLACE(path, '/home', '/')
+        WHERE path LIKE '/home%'
+      `).run();
+
+      if (foldersPathUpdated.changes > 0) {
+        console.log(`🔄 Migrated ${foldersPathUpdated.changes} folder paths from '/home' to '/'`);
+      }
+
+      // Update folders table: change parent_path from '/home' to '/'
+      const foldersParentUpdated = this.db.prepare(`
+        UPDATE folders 
+        SET parent_path = REPLACE(parent_path, '/home', '/')
+        WHERE parent_path LIKE '/home%'
+      `).run();
+
+      if (foldersParentUpdated.changes > 0) {
+        console.log(`🔄 Migrated ${foldersParentUpdated.changes} folder parent paths from '/home' to '/'`);
+      }
+
+      // Also handle cases where parent_path is just 'home'
+      const foldersParentHomeUpdated = this.db.prepare(`
+        UPDATE folders 
+        SET parent_path = '/'
+        WHERE parent_path = 'home'
+      `).run();
+
+      if (foldersParentHomeUpdated.changes > 0) {
+        console.log(`🔄 Migrated ${foldersParentHomeUpdated.changes} folder parent paths from 'home' to '/'`);
+      }
+
+    } catch (error) {
+      console.error('❌ Error during path migration:', error);
     }
   }
 

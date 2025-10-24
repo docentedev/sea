@@ -1,4 +1,4 @@
-import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse } from '../types/api';
+import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse } from '../types/api';
 import { ApiError } from '../types/api';
 
 class ApiService {
@@ -124,8 +124,13 @@ class ApiService {
     return response.data;
   }
 
-  async uploadFiles(formData: FormData): Promise<FileUploadResponse> {
+  async uploadFiles(formData: FormData, virtualFolderPath?: string): Promise<FileUploadResponse> {
     const token = localStorage.getItem('auth_token');
+
+    // Add virtual folder path to form data if provided
+    if (virtualFolderPath && virtualFolderPath !== '/') {
+      formData.append('virtual_folder_path', virtualFolderPath);
+    }
 
     const response = await fetch(`${this.baseURL}/api/files/upload`, {
       method: 'POST',
@@ -176,6 +181,18 @@ class ApiService {
       parent_path: folderPath,
     });
     return this.request<FolderContentResponse>(`/api/virtual-folders?${params}`);
+  }
+
+  async createFolder(name: string, path: string, parentPath?: string): Promise<Folder> {
+    const response = await this.request<FolderResponse>('/api/virtual-folders', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        path,
+        parent_path: parentPath || null
+      }),
+    });
+    return response.data;
   }
 }
 
