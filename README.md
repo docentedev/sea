@@ -407,6 +407,26 @@ Este proyecto está bajo la licencia MIT. Ver el archivo `LICENSE` para más det
 
 ## 📝 Changelog
 
+### [2.1.2] - 2025-10-23
+#### ✨ Added
+- **Correcciones menores**: Ajustes en la configuración de estilos y dependencias.
+
+### [2.1.1] - 2025-10-23
+#### ✨ Added
+- **Correcciones en TailwindCSS**: Ajustes en la configuración y estilos de TailwindCSS.
+- **Mejoras en la integración de AuthController y UserController**: Optimización de la lógica de autenticación y gestión de usuarios.
+- **Actualización de dependencias**: Últimas versiones de dependencias para mejorar estabilidad y rendimiento.
+- **Optimización del build**: Proceso de construcción más eficiente y rápido.
+
+#### 🔧 Changed
+- **Configuración de TailwindCSS**: Cambios en `tailwind.config.js` para mejorar la generación de estilos.
+- **Scripts de construcción**: Actualizados para reflejar cambios en dependencias y configuración.
+- **Documentación**: Actualizados ejemplos y guías para configuración y uso.
+
+#### 🐛 Fixed
+- **Errores menores**: Corrección de errores y advertencias en la consola.
+- **Problemas de rendimiento**: Optimización de consultas y carga de datos.
+
 ### [2.1.0] - 2025-10-23
 #### ✨ Added
 - **Sistema de autenticación JWT**: Endpoint `/api/login` con tokens JWT

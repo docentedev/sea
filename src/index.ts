@@ -12,6 +12,11 @@ import infoRoutes from './routes/info';
 import apiRoutes from './routes/api';
 import authRoutes from './routes/auth';
 import userRoutes from './routes/users';
+import roleRoutes from './routes/roles';
+import fileRoutes from './routes/files';
+import folderRoutes from './routes/folders';
+import virtualFolderRoutes from './routes/virtualFolders';
+import configurationRoutes from './routes/configurations';
 
 async function buildServer() {
   // Crear instancia de Fastify
@@ -26,6 +31,14 @@ async function buildServer() {
 
   // Registrar plugins
   await fastify.register(import('@fastify/cors'), corsOptions);
+  await fastify.register(import('@fastify/multipart'), {
+    limits: {
+      fileSize: 1024 * 1024 * 1024, // 1GB por defecto, será sobreescrito por configuración
+      files: 10, // máximo 10 archivos por request
+      fields: 10 // máximo 10 campos de formulario
+    },
+    attachFieldsToBody: true
+  });
   await fastify.register(staticPlugin);
   await fastify.register(systemPlugin);
 
@@ -36,6 +49,11 @@ async function buildServer() {
   await fastify.register(apiRoutes);
   await fastify.register(authRoutes);
   await fastify.register(userRoutes);
+  await fastify.register(roleRoutes);
+  await fastify.register(fileRoutes);
+  await fastify.register(folderRoutes);
+  await fastify.register(virtualFolderRoutes);
+  await fastify.register(configurationRoutes);
 
   // Hook para manejo de errores
   fastify.setErrorHandler(async (error, request, reply) => {

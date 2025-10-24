@@ -232,7 +232,7 @@ export interface RegisterUserRequest {
   username: string;
   email: string;
   password: string;
-  role: string;
+  role: number;
   storageQuotaGb?: number;
 }
 
@@ -240,7 +240,7 @@ export interface UpdateUserRequest {
   username?: string;
   email?: string;
   password?: string;
-  role?: string;
+  role?: number;
   storageQuotaGb?: number;
   isActive?: boolean;
 }

@@ -19,6 +19,7 @@ export class DatabaseInitializer {
   initialize(): void {
     try {
       this.createTables();
+      this.migrateTables();
       this.seedDatabase();
       console.log(`📁 NAS Cloud Database initialized at: ${DatabaseConnection.getDbPath()}`);
     } catch (error) {
@@ -31,6 +32,28 @@ export class DatabaseInitializer {
     this.db.exec(DB_SCHEMA.ROLES_TABLE);
     this.db.exec(DB_SCHEMA.USERS_TABLE);
     this.db.exec(DB_SCHEMA.USERS_TRIGGER);
+    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TABLE);
+    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TRIGGER);
+    this.db.exec(DB_SCHEMA.FILES_TABLE);
+    this.db.exec(DB_SCHEMA.FILES_TRIGGER);
+    this.db.exec(DB_SCHEMA.FOLDERS_TABLE);
+    this.db.exec(DB_SCHEMA.FOLDERS_TRIGGER);
+  }
+
+  private migrateTables(): void {
+    // Check and add missing columns
+    this.addMissingColumns();
+  }
+
+  private addMissingColumns(): void {
+    // Check if virtual_folder_path column exists in files table
+    const tableInfo = this.db.prepare('PRAGMA table_info(files)').all() as any[];
+    const hasVirtualFolderPath = tableInfo.some(col => col.name === 'virtual_folder_path');
+
+    if (!hasVirtualFolderPath) {
+      this.db.exec('ALTER TABLE files ADD COLUMN virtual_folder_path TEXT DEFAULT "/"');
+      console.log('🔧 Added missing virtual_folder_path column to files table');
+    }
   }
 
   private seedDatabase(): void {

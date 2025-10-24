@@ -42,6 +42,10 @@ export class DatabaseService {
     return this.roleService;
   }
 
+  getDatabase(): DatabaseSync {
+    return this.db;
+  }
+
   // Health and statistics
   getHealth(): { status: string; message: string } {
     try {

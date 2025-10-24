@@ -81,7 +81,7 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Obtener role_id desde el nombre del rol
-      const role = roleService.getRoleByName(body.role);
+      const role = roleService.getRoleById(body.role);
       if (!role) {
         return reply.status(400).send({
           success: false,
@@ -298,7 +298,7 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
       if (body.email) updateData.email = body.email;
       if (body.password) updateData.password_hash = body.password; // En producción usar bcrypt
       if (body.role) {
-        const role = roleService.getRoleByName(body.role);
+        const role = roleService.getRoleById(body.role);
         if (!role) {
           return reply.status(400).send({
             success: false,

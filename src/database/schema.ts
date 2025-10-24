@@ -34,6 +34,70 @@ export const DB_SCHEMA = {
     BEGIN
       UPDATE users SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
     END
+  `,
+
+  CONFIGURATIONS_TABLE: `
+    CREATE TABLE IF NOT EXISTS configurations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT UNIQUE NOT NULL,
+      value TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `,
+
+  CONFIGURATIONS_TRIGGER: `
+    CREATE TRIGGER IF NOT EXISTS update_configurations_timestamp 
+    AFTER UPDATE ON configurations
+    BEGIN
+      UPDATE configurations SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END
+  `,
+
+  FILES_TABLE: `
+    CREATE TABLE IF NOT EXISTS files (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      filename TEXT NOT NULL,
+      original_filename TEXT NOT NULL,
+      path TEXT NOT NULL,
+      size INTEGER NOT NULL,
+      mime_type TEXT NOT NULL,
+      user_id INTEGER NOT NULL,
+      folder_path TEXT NOT NULL,
+      virtual_folder_path TEXT DEFAULT '/',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `,
+
+  FILES_TRIGGER: `
+    CREATE TRIGGER IF NOT EXISTS update_files_timestamp 
+    AFTER UPDATE ON files
+    BEGIN
+      UPDATE files SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END
+  `,
+
+  FOLDERS_TABLE: `
+    CREATE TABLE IF NOT EXISTS folders (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      path TEXT UNIQUE NOT NULL,
+      parent_path TEXT,
+      user_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `,
+
+  FOLDERS_TRIGGER: `
+    CREATE TRIGGER IF NOT EXISTS update_folders_timestamp 
+    AFTER UPDATE ON folders
+    BEGIN
+      UPDATE folders SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+    END
   `
 };
 

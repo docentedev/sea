@@ -4,10 +4,18 @@ import { AppProvider } from './contexts/AppContext';
 import { LoginPage } from './pages/LoginPage';
 import { HomePage } from './pages/HomePage';
 import { HealthPage } from './pages/HealthPage';
+import UserManagementPage from './pages/UserManagementPage';
+import { FileUploadPage } from './pages/FileUploadPage';
+import { FileBrowserPage } from './pages/FileBrowserPage';
 import { NavLink } from './components/NavLink';
+import { useState } from 'react';
+import { Menu, MenuItem } from './components/Menu';
 
 function AppContent() {
   const { state, logout } = useAuth();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen(!menuOpen);
 
   if (state.loading) {
     return (
@@ -37,10 +45,19 @@ function AppContent() {
 
           <div className="flex gap-5 ml-10">
             <NavLink href="/">Home</NavLink>
+            <NavLink href="/files">Upload Files</NavLink>
+            <NavLink href="/browser">File Browser</NavLink>
             <NavLink href="/health">System Health</NavLink>
+            {state.user?.role && (
+              typeof state.user.role === 'object' 
+                ? state.user.role.name === 'admin' 
+                : state.user.role === 'admin' || state.user.role.includes('admin')
+            ) && (
+              <NavLink href="/users">Manage Users</NavLink>
+            )}
           </div>
 
-          {/* User info and logout */}
+          {/* User info and menu */}
           <div className="ml-auto flex items-center gap-4">
             <span className="text-sm text-gray-600">
               Welcome, <span className="font-medium text-gray-900">{state.user?.username}</span>
@@ -48,20 +65,37 @@ function AppContent() {
                 {typeof state.user?.role === 'object' ? state.user.role.display_name : state.user?.role || 'User'}
               </span>
             </span>
-            <button
-              onClick={logout}
-              className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
-            >
-              Logout
-            </button>
+            <div className="relative">
+              <button
+                onClick={toggleMenu}
+                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md transition-colors"
+              >
+                Menu
+              </button>
+              {menuOpen && (
+                <Menu>
+                  <MenuItem onClick={logout}>Logout</MenuItem>
+                  {state.user?.role && (
+                    typeof state.user.role === 'object' 
+                      ? state.user.role.name === 'admin' 
+                      : state.user.role === 'admin' || state.user.role.includes('admin')
+                  ) && (
+                    <MenuItem href="/users">Manage Users</MenuItem>
+                  )}
+                </Menu>
+              )}
+            </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
+      {/* Main content */}
       <main className="max-w-6xl mx-auto bg-white min-h-[calc(100vh-60px)] shadow-lg">
         <Route path="/" component={HomePage} />
         <Route path="/health" component={HealthPage} />
+        <Route path="/users" component={UserManagementPage} />
+        <Route path="/files" component={FileUploadPage} />
+        <Route path="/browser" component={FileBrowserPage} />
       </main>
     </div>
   );
