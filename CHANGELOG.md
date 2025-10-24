@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0] - 2025-10-24
+
+### Added
+- FileList component for table-style file and folder display
+- Custom hooks for better code organization:
+  - `useFileBrowser` - File navigation and content loading
+  - `useFileUpload` - File upload functionality with drag-and-drop
+  - `useFolderOperations` - Folder creation and deletion operations
+- Modal components for better user interactions:
+  - CreateFolderModal
+  - UploadModal
+  - DeleteModal
+- Enhanced breadcrumb navigation with icons and improved styling
+
+### Changed
+- Refactored FileBrowser component from monolithic 704-line component to modular structure
+- Improved file browser user experience with better visual feedback
+- Enhanced folder view refresh after creating virtual directories
+- Better separation of concerns with custom hooks and smaller components
+
+### Fixed
+- Folder view not updating after creating new directories
+- Improved component reusability and maintainability
+
 ## [2.1.1] - 2025-10-23
 
 ### Added

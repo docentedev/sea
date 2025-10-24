@@ -20,6 +20,10 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - ✅ **Base de datos SQLite**: Gestión de usuarios y roles para NAS
 - ✅ **Sistema de autenticación**: JWT con roles y permisos
 - ✅ **Gestión de usuarios**: CRUD completo con autorización de admin
+- ✅ **File Browser**: Navegador de archivos con vista de lista y navegación por directorios
+- ✅ **File Upload**: Subida de archivos con drag-and-drop y barra de progreso
+- ✅ **Folder Management**: Crear y eliminar directorios virtuales
+- ✅ **Breadcrumb Navigation**: Navegación intuitiva con iconos y mejor UX
 - ✅ **Tailwind CSS**: Framework de estilos moderno y responsivo
 - ✅ **Single Executable**: Aplicación standalone (110.24 MB)
 - ✅ **Arquitectura limpia**: Servicios, repositorios y controladores
@@ -46,6 +50,8 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 ### Frontend Routes
 - `GET /` - Página de inicio
 - `GET /health` - Dashboard de health del sistema
+- `GET /browser` - Navegador de archivos y directorios
+- `GET /users` - Gestión de usuarios (requiere admin)
 
 ## 🛠️ Instalación y Configuración
 
