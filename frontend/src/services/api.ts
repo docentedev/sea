@@ -15,12 +15,20 @@ class ApiService {
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
     try {
       const config: RequestInit = {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options?.headers,
-        },
         ...options,
       };
+
+      // Only set Content-Type to application/json if there's a body
+      if (options?.body) {
+        config.headers = {
+          'Content-Type': 'application/json',
+          ...options?.headers,
+        };
+      } else {
+        config.headers = {
+          ...options?.headers,
+        };
+      }
 
       // Add authorization header if token exists
       const token = localStorage.getItem('auth_token');
