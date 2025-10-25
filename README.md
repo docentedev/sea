@@ -34,7 +34,25 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - ✅ **TypeScript**: Type safety en todo el stack
 - ✅ **Context API**: Manejo de estado en React sin librerías externas
 
-## 📦 Endpoints Disponibles
+## � Últimos Cambios (v4.5.0)
+
+### ✨ Nuevas Funcionalidades
+- **Dark Mode Completo**: Implementación completa de modo oscuro en toda la aplicación
+- **Soporte de Tablas en Markdown**: Renderizado completo de tablas con alineación
+- **Protección de Código**: Prevención de conflictos de sintaxis en bloques de código
+- **Librería de Componentes**: Nuevos componentes reutilizables (Button, Modal, FormField, etc.)
+
+### 🎨 Mejoras de UI/UX
+- **Consistencia Visual**: Tema oscuro consistente con colores gray-800/900
+- **Componentes Modernizados**: Formularios y navegación con mejor experiencia
+- **Visualización de Archivos**: Mejores viewers con fondos oscuros apropiados
+
+### 🐛 Correcciones
+- **Renderizado de Código**: Comentarios `#` ya no se convierten en títulos
+- **Colores de Texto**: Consistencia en colores de texto en modo oscuro
+- **Fondos de Viewers**: Eliminación de fondos blancos en visualizadores
+
+## �📦 Endpoints Disponibles
 
 ### API Endpoints
 - `GET /api/health` - Estado del sistema y base de datos

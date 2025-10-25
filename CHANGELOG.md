@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.5.0] - 2025-10-25
+
+### Added
+- **Complete Dark Mode Implementation**: Comprehensive dark mode support across entire frontend application
+- **MarkdownViewer Table Support**: Added full table rendering with alignment support (`:---:`, `---:`, `:---`)
+- **Code Protection in Markdown**: Protected code blocks and inline code from markdown processing to prevent syntax conflicts
+- **Enhanced UI Component Library**: New reusable components (Button, Modal, FormField, Input, Card, etc.)
+- **Dark Mode Theming System**: Consistent gray-800/900 backgrounds with gray-100/200/300 text colors
+- **Modal Component Enhancements**: Added closeOnBackdropClick functionality for better UX
+- **File Viewer Improvements**: Enhanced CSVViewer and MarkdownViewer with proper dark mode backgrounds
+- **Component Architecture**: Organized components into logical folders (data, forms, layout, navigation, notifications, state)
+
+### Changed
+- **MarkdownViewer Rendering**: Improved markdown processing with placeholder-based code protection
+- **Component Styling**: Updated all components with consistent dark mode color schemes
+- **File Browser Components**: Enhanced with dark mode styling and improved visual hierarchy
+- **Form Components**: Modernized with custom Input/FormField components and better validation
+- **Navigation Components**: Updated Breadcrumb, NavigationTabs with dark mode compatibility
+
+### Fixed
+- **Markdown Code Rendering**: Fixed issue where `# comments` in code were being converted to headers
+- **Dark Mode Text Colors**: Resolved inconsistent text colors across all components
+- **File Viewer Backgrounds**: Fixed white backgrounds in file viewers for proper dark mode display
+- **Modal Backdrop Behavior**: Improved modal close functionality with backdrop clicks
+
+### UI/UX Improvements
+- **Dark Mode Consistency**: All components now properly support dark theme
+- **Code Syntax Highlighting**: Better visual distinction for code blocks and inline code
+- **Table Rendering**: Professional table display with proper borders and spacing
+- **Component Reusability**: Modular component library for consistent UI patterns
+
+### Technical Details
+- **Markdown Processing**: Implemented placeholder-based protection for code blocks and inline code
+- **CSS Classes**: Added comprehensive dark mode classes (bg-gray-800/900, text-gray-100/200/300, border-gray-600/700)
+- **Component Organization**: Restructured component folder with index.ts files for clean imports
+- **TypeScript Interfaces**: Maintained type safety across all new components
+
 ## [4.4.0] - 2025-10-24
 
 ### Added
