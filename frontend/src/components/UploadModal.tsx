@@ -1,4 +1,7 @@
 import React from 'react';
+import { Button } from './Button';
+import { Modal } from './Modal';
+import { Upload, X } from 'lucide-react';
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -46,27 +49,28 @@ export const UploadModal: React.FC<UploadModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4">Upload Files</h3>
-
+    <Modal
+      isOpen={isOpen}
+      onClose={onCancel}
+      title="Upload Files"
+      size="lg"
+    >
+      <div className="space-y-4 m-2">
         {/* Drop zone */}
         <div
           ref={dropZoneRef}
-          className="border-2 border-dashed border-gray-300 rounded-lg p-8 mb-4 text-center hover:border-blue-400 transition-colors"
+          className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors"
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onDrop={onDrop}
         >
-          <div className="text-gray-600 mb-4">
-            <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
-              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+          <div className="text-gray-400 mb-4">
+            <Upload className="mx-auto h-12 w-12 text-gray-400" />
           </div>
-          <p className="text-lg font-medium text-gray-900 mb-2">
+          <p className="text-lg font-medium text-gray-100 mb-2">
             Drop files here or click to browse
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-gray-400">
             Support for multiple files
           </p>
           <input
@@ -76,33 +80,35 @@ export const UploadModal: React.FC<UploadModalProps> = ({
             onChange={(e) => onFileSelect(e.target.files)}
             className="hidden"
           />
-          <button
+          <Button
             type="button"
+            variant="primary"
             onClick={() => fileInputRef.current?.click()}
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             disabled={uploading}
+            className="mt-4"
           >
             Browse Files
-          </button>
+          </Button>
         </div>
 
         {/* Selected files */}
         {selectedFiles.length > 0 && (
-          <div className="mb-4">
+          <div>
             <h4 className="font-medium mb-2">Selected Files:</h4>
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {selectedFiles.map((file, index) => (
-                <div key={index} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                <div key={index} className="flex items-center justify-between bg-gray-800 p-2 rounded">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">{file.name}</p>
-                    <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+                    <p className="text-sm font-medium text-gray-100 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-400">{formatFileSize(file.size)}</p>
                   </div>
                   <button
                     onClick={() => onRemoveFile(index)}
-                    className="ml-2 text-red-600 hover:text-red-800"
+                    className="ml-2 text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-50 transition-colors"
                     disabled={uploading}
+                    aria-label="Remove file"
                   >
-                    ✕
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -112,48 +118,48 @@ export const UploadModal: React.FC<UploadModalProps> = ({
 
         {/* Progress */}
         {uploading && (
-          <div className="mb-4">
+          <div>
             <div className="bg-gray-200 rounded-full h-2">
               <div
                 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${uploadProgress}%` }}
               ></div>
             </div>
-            <p className="text-sm text-gray-600 mt-1">{uploadProgress}% uploaded</p>
+            <p className="text-sm text-gray-400 mt-1">{uploadProgress}% uploaded</p>
           </div>
         )}
 
         {/* Messages */}
         {uploadError && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+          <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded">
             {uploadError}
           </div>
         )}
 
         {uploadSuccess && (
-          <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+          <div className="p-3 bg-green-100 border border-green-400 text-green-700 rounded">
             {uploadSuccess}
           </div>
         )}
 
         {/* Actions */}
         <div className="flex justify-end space-x-3">
-          <button
+          <Button
+            variant="secondary"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
             disabled={uploading}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={onUpload}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
             disabled={uploading || selectedFiles.length === 0}
           >
             {uploading ? 'Uploading...' : 'Upload'}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };

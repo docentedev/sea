@@ -70,11 +70,15 @@ export class FileService {
       // Validar tipo de archivo
       if (!this.isFileTypeAllowed(mimeType, originalFilename)) {
         const blockedExts = this.getBlockedFileExtensions();
+        const allowedExts = this.getAllowedFileExtensions();
         const fileExt = originalFilename.toLowerCase().substring(originalFilename.lastIndexOf('.'));
         const isBlockedByExt = blockedExts.includes(fileExt);
+        const isAllowedByExt = allowedExts.includes(fileExt);
 
         if (isBlockedByExt) {
           throw new Error(`File extension '${fileExt}' is blocked. Blocked extensions: ${blockedExts.join(', ')}`);
+        } else if (allowedExts.length > 0 && !isAllowedByExt) {
+          throw new Error(`File extension '${fileExt}' is not in allowed extensions list. Allowed extensions: ${allowedExts.join(', ')}`);
         } else {
           throw new Error(`File type '${mimeType}' is not allowed. Allowed types: ${this.getAllowedFileTypes().join(', ')}`);
         }
@@ -255,9 +259,38 @@ export class FileService {
     return ['.exe', '.bat', '.cmd', '.com', '.scr', '.pif', '.jar', '.py', '.pyc', '.pyo', '.pyd'];
   }
 
+  // Get allowed file extensions from configuration
+  getAllowedFileExtensions(): string[] {
+    const configValue = this.configService.getConfigValue('allowed_file_extensions');
+    if (configValue) {
+      // Split by comma, trim whitespace, and ensure they start with .
+      return configValue.split(',').map(ext => {
+        const trimmed = ext.trim().toLowerCase();
+        return trimmed.startsWith('.') ? trimmed : `.${trimmed}`;
+      });
+    }
+    // Default allowed extensions (empty by default, meaning all extensions are allowed if they pass other checks)
+    return [];
+  }
+
   // Validate file type against allowed types and blocked extensions
   isFileTypeAllowed(mimeType: string, fileName?: string): boolean {
-    // First check MIME type
+    // First check allowed extensions (whitelist takes precedence)
+    if (fileName) {
+      const allowedExtensions = this.getAllowedFileExtensions();
+      if (allowedExtensions.length > 0) {
+        const fileExt = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+        if (allowedExtensions.includes(fileExt)) {
+          // Extension is explicitly allowed, skip MIME type and blocked extension checks
+          return true;
+        } else {
+          // Extension is not in whitelist, reject immediately
+          return false;
+        }
+      }
+    }
+
+    // If no extension whitelist is configured, check MIME type
     const allowedTypes = this.getAllowedFileTypes();
     const mimeAllowed = allowedTypes.some(allowedType => {
       if (allowedType.includes('*')) {
@@ -274,7 +307,7 @@ export class FileService {
       return false;
     }
 
-    // Then check file extension if filename is provided
+    // Finally check file extension against blocked extensions
     if (fileName) {
       const blockedExtensions = this.getBlockedFileExtensions();
       const fileExt = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));

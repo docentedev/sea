@@ -80,22 +80,39 @@ export class UserRepository {
     return row ? this.mapRowToUserWithRole(row) : null;
   }
 
-  findAllWithRoles(): UserWithRole[] {
-    const stmt = this.db.prepare(`
-      SELECT u.id, u.username, u.email, u.password_hash, u.role_id, 
-             u.storage_quota_gb, u.storage_used_gb, u.is_active, 
+  findAllWithRoles(searchQuery?: string): UserWithRole[] {
+    console.log('🔍 UserRepository.findAllWithRoles called with searchQuery:', searchQuery);
+
+    let sql = `
+      SELECT u.id, u.username, u.email, u.password_hash, u.role_id,
+             u.storage_quota_gb, u.storage_used_gb, u.is_active,
              u.created_at, u.updated_at,
              r.name as role_name, r.permissions
       FROM users u
       JOIN roles r ON u.role_id = r.id
-      ORDER BY u.username
-    `);
-    
-    const rows = stmt.all() as any[];
-    return rows.map(this.mapRowToUserWithRole);
-  }
+    `;
 
-  create(userData: CreateUserData): User {
+    const params: any[] = [];
+
+    if (searchQuery && searchQuery.trim()) {
+      sql += ` WHERE (u.username LIKE ? OR u.email LIKE ?)`;
+      const searchPattern = `%${searchQuery.trim()}%`;
+      params.push(searchPattern, searchPattern);
+      console.log('🔍 Adding WHERE clause with pattern:', searchPattern);
+    }
+
+    sql += ` ORDER BY u.username`;
+
+    console.log('🔍 Final SQL:', sql);
+    console.log('🔍 SQL params:', params);
+
+    const stmt = this.db.prepare(sql);
+    const rows = params.length > 0 ? stmt.all(...params) as any[] : stmt.all() as any[];
+
+    console.log('🔍 Query returned', rows.length, 'rows');
+
+    return rows.map(this.mapRowToUserWithRole);
+  }  create(userData: CreateUserData): User {
     const stmt = this.db.prepare(`
       INSERT INTO users (username, email, password_hash, role_id, storage_quota_gb)
       VALUES (?, ?, ?, ?, ?)

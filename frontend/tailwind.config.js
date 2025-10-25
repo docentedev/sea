@@ -4,6 +4,10 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: false,
+  safelist: [
+    // Additional classes used in the app
+  ],
   theme: {
     extend: {
       colors: {

@@ -1,11 +1,14 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-@reference "tailwindcss";
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
 
 @layer base {
+  html {
+    @apply transition-colors duration-300;
+  }
+
   body {
-    @apply font-sans text-gray-800 bg-gray-50;
+    @apply font-sans text-gray-100 bg-gray-900;
   }
 }

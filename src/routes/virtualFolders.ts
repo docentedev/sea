@@ -133,7 +133,8 @@ const virtualFolderRoutes: FastifyPluginAsync = async (fastify) => {
 
       if (parent_path !== undefined) {
         // Obtener contenido de una carpeta específica
-        const contents = await folderService.getFolderContents(parent_path, user.id);
+        const isAdmin = authService.isAdmin(user);
+        const contents = await folderService.getFolderContents(parent_path, isAdmin ? undefined : user.id);
         reply.send({
           success: true,
           data: contents,

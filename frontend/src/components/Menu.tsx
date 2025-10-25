@@ -6,7 +6,7 @@ interface MenuProps {
 
 export const Menu: React.FC<MenuProps> = ({ children }) => {
   return (
-    <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-300 rounded-md shadow-lg">
+    <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-600 rounded-md shadow-lg">
       {children}
     </div>
   );
@@ -23,7 +23,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick, href }) =
     return (
       <a
         href={href}
-        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-gray-100"
       >
         {children}
       </a>
@@ -33,7 +33,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick, href }) =
   return (
     <button
       onClick={onClick}
-      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900"
+      className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-gray-100"
     >
       {children}
     </button>

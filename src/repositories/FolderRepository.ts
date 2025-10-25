@@ -80,17 +80,26 @@ export class FolderRepository {
     }));
   }
 
-  async findByParentPath(parentPath: string | null, userId: number): Promise<Folder[]> {
+  async findByParentPath(parentPath: string | null, userId?: number): Promise<Folder[]> {
     let sql: string;
     let params: any[];
-
     if (parentPath === null || parentPath === '/') {
       // For root folders, find folders with parent_path IS NULL
-      sql = `SELECT * FROM folders WHERE (parent_path IS NULL OR parent_path = '/') AND user_id = ? ORDER BY name`;
-      params = [userId];
+      if (userId !== undefined) {
+        sql = `SELECT * FROM folders WHERE (parent_path IS NULL OR parent_path = '/') AND user_id = ? ORDER BY name`;
+        params = [userId];
+      } else {
+        sql = `SELECT * FROM folders WHERE (parent_path IS NULL OR parent_path = '/') ORDER BY name`;
+        params = [];
+      }
     } else {
-      sql = `SELECT * FROM folders WHERE parent_path = ? AND user_id = ? ORDER BY name`;
-      params = [parentPath, userId];
+      if (userId !== undefined) {
+        sql = `SELECT * FROM folders WHERE parent_path = ? AND user_id = ? ORDER BY name`;
+        params = [parentPath, userId];
+      } else {
+        sql = `SELECT * FROM folders WHERE parent_path = ? ORDER BY name`;
+        params = [parentPath];
+      }
     }
 
     const rows = this.db.prepare(sql).all(...params) as any[];
@@ -106,7 +115,7 @@ export class FolderRepository {
     }));
   }
 
-  async getFolderContents(folderPath: string | null, userId: number): Promise<FolderContent> {
+  async getFolderContents(folderPath: string | null, userId?: number): Promise<FolderContent> {
     const folders = await this.findByParentPath(folderPath, userId);
     const files = await this.getFilesInFolder(folderPath, userId);
 
@@ -118,17 +127,27 @@ export class FolderRepository {
     };
   }
 
-  private async getFilesInFolder(folderPath: string | null, userId: number): Promise<File[]> {
+  private async getFilesInFolder(folderPath: string | null, userId?: number): Promise<File[]> {
     let sql: string;
     let params: any[];
 
     if (folderPath === null || folderPath === '/') {
       // For root folder, find files with virtual_folder_path = '/' or virtual_folder_path IS NULL
+      if (userId !== undefined) {
       sql = `SELECT * FROM files WHERE (virtual_folder_path = '/' OR virtual_folder_path IS NULL) AND user_id = ? ORDER BY filename`;
       params = [userId];
+      } else {
+      sql = `SELECT * FROM files WHERE (virtual_folder_path = '/' OR virtual_folder_path IS NULL) ORDER BY filename`;
+      params = [];
+      }
     } else {
+      if (userId !== undefined) {
       sql = `SELECT * FROM files WHERE virtual_folder_path = ? AND user_id = ? ORDER BY filename`;
       params = [folderPath, userId];
+      } else {
+      sql = `SELECT * FROM files WHERE virtual_folder_path = ? ORDER BY filename`;
+      params = [folderPath];
+      }
     }
 
     const rows = this.db.prepare(sql).all(...params) as any[];

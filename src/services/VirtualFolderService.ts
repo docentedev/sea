@@ -55,7 +55,7 @@ export class VirtualFolderService {
     return await this.folderRepo.findByUserId(userId);
   }
 
-  async getFolderContents(folderPath: string | null, userId: number): Promise<FolderContent> {
+  async getFolderContents(folderPath: string | null, userId?: number): Promise<FolderContent> {
     // Normalize folderPath: '/' and null both mean root
     const normalizedFolderPath = (folderPath === '/' || folderPath === null) ? null : folderPath;
 

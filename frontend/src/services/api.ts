@@ -88,11 +88,16 @@ class ApiService {
     return null;
   }
 
-  async getUsers(page: number = 1, limit: number = 10): Promise<UsersResponse> {
+  async getUsers(page: number = 1, limit: number = 10, search?: string): Promise<UsersResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       limit: limit.toString(),
     });
+
+    if (search && search.trim()) {
+      params.append('q', search.trim());
+    }
+
     const response = await this.request<ApiResponse<UsersResponse>>(`/api/users?${params}`);
     return response.data;
   }
@@ -129,6 +134,15 @@ class ApiService {
       limit: limit.toString(),
     });
     const response = await this.request<ApiResponse<FilesResponse>>(`/api/files?${params}`);
+    return response.data;
+  }
+
+  async getAllFiles(page: number = 1, limit: number = 20): Promise<FilesResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    const response = await this.request<ApiResponse<FilesResponse>>(`/api/files/all?${params}`);
     return response.data;
   }
 

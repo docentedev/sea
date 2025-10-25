@@ -148,7 +148,8 @@ export interface FileUploadConfig {
   maxFilesPerUpload: number;
   allowedFileTypes: string[];
   blockedFileExtensions: string[];
-  defaultFileView?: 'list' | 'grid';
+  allowedFileExtensions?: string[];
+  defaultFileView?: 'table' | 'cards';
 }
 
 // Folder types

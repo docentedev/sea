@@ -36,8 +36,8 @@ export class UserService {
     return this.userRepo.findWithRole(id);
   }
 
-  getAllUsersWithRoles(): UserWithRole[] {
-    return this.userRepo.findAllWithRoles();
+  getAllUsersWithRoles(searchQuery?: string): UserWithRole[] {
+    return this.userRepo.findAllWithRoles(searchQuery);
   }
 
   createUser(userData: CreateUserData): User {

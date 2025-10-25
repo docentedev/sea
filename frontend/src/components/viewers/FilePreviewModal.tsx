@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import type { FileInfo } from '../../types/api';
 import { getFileViewer } from './FileViewerRegistry';
 import { apiService } from '../../services/api';
+import { Button } from '../Button';
+import { Modal } from '../Modal';
 
 interface FilePreviewModalProps {
   file: FileInfo | null;
@@ -99,20 +101,20 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   if (!ViewerComponent) {
     return (
       <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-        <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div className="relative top-20 mx-auto p-5 border border-gray-600 w-96 shadow-lg rounded-md bg-gray-800">
           <div className="mt-3 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
+            <h3 className="text-lg font-medium text-gray-100 mb-4">
               Preview Not Available
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-400 mb-4">
               No preview available for this file type.
             </p>
-            <button
+            <Button
               onClick={onClose}
-              className="px-4 py-2 bg-blue-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-300"
+              variant="primary"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -130,12 +132,12 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             <div className="flex items-center justify-center h-32">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             </div>
-            <button
+            <Button
               onClick={onClose}
-              className="mt-4 px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              variant="secondary"
             >
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -150,15 +152,15 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Error Loading File
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-gray-400 mb-4">
               {error}
             </p>
-            <button
+            <Button
               onClick={onClose}
-              className="px-4 py-2 bg-red-500 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+              variant="danger"
             >
               Close
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -166,25 +168,16 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-4 mx-auto p-5 border max-w-4xl w-full shadow-lg rounded-md bg-white max-h-[90vh] overflow-hidden">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900 truncate">
-            {file.original_filename}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 focus:outline-none"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div className="overflow-auto max-h-[calc(90vh-8rem)]">
-          <ViewerComponent file={file} fileUrl={fileUrl!} onClose={onClose} />
-        </div>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={file.original_filename}
+      size="xl"
+      className="max-h-[90vh]"
+    >
+      <div className="p-6">
+        <ViewerComponent file={file} fileUrl={fileUrl!} onClose={onClose} />
       </div>
-    </div>
+    </Modal>
   );
 };

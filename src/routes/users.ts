@@ -138,17 +138,35 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  // GET /api/users - Get all users with pagination (admin only)
+  // GET /api/users - Get all users with pagination and search (admin only)
   fastify.get('/api/users', {
-    preHandler: [requireAuth, requireAdmin]
+    preHandler: [requireAuth, requireAdmin],
+    schema: {
+      querystring: {
+        type: 'object',
+        properties: {
+          page: { type: 'string', default: '1' },
+          limit: { type: 'string', default: '10' },
+          q: { type: 'string' }
+        }
+      }
+    }
   }, async (request, reply) => {
     try {
-      const query = request.query as any;
-      const page = parseInt(query.page || '1', 10);
-      const limit = parseInt(query.limit || '10', 10);
+      const { page = '1', limit = '10', q: searchQuery = '' } = request.query as {
+        page?: string;
+        limit?: string;
+        q?: string;
+      };
+
+      const pageNum = parseInt(page, 10);
+      const limitNum = parseInt(limit, 10);
+      const trimmedSearchQuery = searchQuery.trim();
+
+      console.log('🔍 Search query received:', { q: searchQuery, trimmedSearchQuery, fullQuery: request.query });
 
       // Validar parámetros de paginación
-      if (page < 1 || limit < 1 || limit > 100) {
+      if (pageNum < 1 || limitNum < 1 || limitNum > 100) {
         return reply.status(400).send({
           success: false,
           message: 'Invalid pagination parameters',
@@ -156,10 +174,11 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      const offset = (page - 1) * limit;
-      const users = userService.getAllUsersWithRoles();
+      let users = userService.getAllUsersWithRoles(trimmedSearchQuery);
+
       const total = users.length;
-      const paginatedUsers = users.slice(offset, offset + limit);
+      const offset = (pageNum - 1) * limitNum;
+      const paginatedUsers = users.slice(offset, offset + limitNum);
 
       const response: UsersListResponse = {
         users: paginatedUsers.map(user => ({
@@ -179,10 +198,10 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
           updated_at: user.updated_at
         })),
         pagination: {
-          page,
-          limit,
+          page: pageNum,
+          limit: limitNum,
           total,
-          totalPages: Math.ceil(total / limit)
+          totalPages: Math.ceil(total / limitNum)
         },
         timestamp: new Date().toISOString()
       };

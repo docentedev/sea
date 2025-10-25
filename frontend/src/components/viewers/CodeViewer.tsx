@@ -116,6 +116,11 @@ export const CodeViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
           const numberRegex = /\b\d+(\.\d+)?\b/g;
           const stringRegex = /(["'`])(.*?)\1/g;
 
+          // Reset regex lastIndex
+          keywordRegex.lastIndex = 0;
+          numberRegex.lastIndex = 0;
+          stringRegex.lastIndex = 0;
+
           // Combine all matches with their positions
           const matches: Array<{ start: number; end: number; type: string; text: string }> = [];
 
@@ -203,22 +208,24 @@ export const CodeViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
           }
 
           return (
-            <div key={lineIndex} style={{ display: 'flex', minHeight: '1.5em', alignItems: 'center' }}>
+            <div key={lineIndex} style={{ display: 'flex', minHeight: '1.5em', alignItems: 'flex-start' }}>
               <span
                 style={{
                   display: 'inline-block',
                   width: '3rem',
+                  flexShrink: 0,
                   textAlign: 'right',
                   color: '#6b7280',
                   marginRight: '1rem',
                   userSelect: 'none',
-                  fontSize: '0.875rem'
+                  fontSize: '0.875rem',
+                  lineHeight: '1.5'
                 }}
               >
                 {lineIndex + 1}
               </span>
-              <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.5' }}>
-                {highlightedParts.length > 0 ? highlightedParts : <span style={{ color: '#e5e7eb', whiteSpace: 'pre' }}>{line || '\u00A0'}</span>}
+              <span style={{ flex: 1, fontFamily: 'monospace', fontSize: '0.875rem', lineHeight: '1.5', overflowWrap: 'break-word' }}>
+                {highlightedParts.length > 0 ? highlightedParts : <span style={{ color: '#e5e7eb', whiteSpace: 'pre-wrap' }}>{line || '\u00A0'}</span>}
               </span>
             </div>
           );
@@ -234,7 +241,7 @@ export const CodeViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
           <svg className="mx-auto h-12 w-12 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
-          <p className="mt-2 text-sm text-gray-500">{error}</p>
+          <p className="mt-2 text-sm text-gray-400">{error}</p>
         </div>
       </div>
     );
@@ -247,7 +254,7 @@ export const CodeViewer: React.FC<FileViewerProps> = ({ file, fileUrl }) => {
         <div className="text-sm text-gray-600">
           {language ? `${language.name} code` : 'Code file'}
         </div>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-400">
           {file.original_filename} ({(file.size / 1024).toFixed(1)} KB)
         </div>
       </div>

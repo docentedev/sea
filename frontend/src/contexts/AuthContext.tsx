@@ -64,6 +64,7 @@ interface AuthContextType {
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => void;
   clearError: () => void;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -174,11 +175,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: 'CLEAR_ERROR' });
   };
 
+  const isAdmin = (): boolean => {
+    return !!(state.user?.role && typeof state.user.role === 'object' && 'can_admin' in state.user.role && state.user.role.can_admin === true);
+  };
+
   const value: AuthContextType = {
     state,
     login,
     logout,
     clearError,
+    isAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

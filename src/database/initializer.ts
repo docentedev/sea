@@ -161,7 +161,7 @@ export class DatabaseInitializer {
       // Set default allowed file types if not exists
       const allowedFileTypes = this.configService.getConfigValue('allowed_file_types');
       if (!allowedFileTypes) {
-        const defaultAllowedTypes = 'image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/x-guitar-pro';
+        const defaultAllowedTypes = 'image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/x-guitar-pro,audio/x-gtp,application/octet-stream';
         this.configService.setConfigValue('allowed_file_types', defaultAllowedTypes);
         console.log(`📄 Default allowed file types set`);
       }
@@ -172,6 +172,32 @@ export class DatabaseInitializer {
         const defaultBlockedExtensions = '.exe,.bat,.cmd,.com,.scr,.pif,.jar,.py,.pyc,.pyo,.pyd';
         this.configService.setConfigValue('blocked_file_extensions', defaultBlockedExtensions);
         console.log(`🚫 Default blocked file extensions set`);
+      }
+
+      // Set default allowed file extensions if not exists (empty by default - optional whitelist)
+      const allowedFileExtensions = this.configService.getConfigValue('allowed_file_extensions');
+      if (!allowedFileExtensions || allowedFileExtensions.trim() === '') {
+        const defaultAllowedExtensions = '.pdf,.doc,.docx,.txt,.jpg,.png,.jpeg,.gif,.mp3,.wav,.gp,.gp3,.gp4,.gp5,.gpx,.gpz'; // Common file extensions including Guitar Pro formats
+        this.configService.setConfigValue('allowed_file_extensions', defaultAllowedExtensions);
+        console.log(`✅ Default allowed file extensions set (whitelist with common formats)`);
+      } else {
+        // Check if .gp3 is missing and add it if needed
+        const extensions = allowedFileExtensions.split(',').map(ext => ext.trim());
+        const guitarProExtensions = ['.gp3', '.gp4', '.gp5', '.gpx', '.gpz'];
+        let updated = false;
+        
+        for (const gpExt of guitarProExtensions) {
+          if (!extensions.includes(gpExt)) {
+            extensions.push(gpExt);
+            updated = true;
+          }
+        }
+        
+        if (updated) {
+          const newExtensions = extensions.join(',');
+          this.configService.setConfigValue('allowed_file_extensions', newExtensions);
+          console.log(`🔧 Updated allowed file extensions to include Guitar Pro formats: ${newExtensions}`);
+        }
       }
 
       // Set default file view mode if not exists

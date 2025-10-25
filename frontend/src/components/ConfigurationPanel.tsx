@@ -1,348 +1,331 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useConfiguration } from '../hooks/useConfiguration';
 import type { Configuration } from '../types/api';
+import { Button } from './Button';
+import { Settings } from 'lucide-react';
+import { useNotifications } from './notifications';
+import { Modal } from './Modal';
+import { DataTable } from './data';
+import type { Column } from './data';
+import Input from './Input';
+import FormField from './FormField';
 
 interface ConfigurationPanelProps {
-  className?: string;
+    className?: string;
+    showCreateModal?: boolean;
+    onCloseCreateModal?: () => void;
 }
 
-export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({ className = '' }) => {
-  const {
-    configurations,
-    loading,
-    error,
-    success,
-    createConfiguration,
-    updateConfiguration,
-    deleteConfiguration,
-    clearMessages
-  } = useConfiguration();
+export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
+    className = '',
+    showCreateModal: externalShowCreateModal,
+    onCloseCreateModal
+}) => {
+    const {
+        configurations,
+        loading,
+        error,
+        success,
+        createConfiguration,
+        updateConfiguration,
+        deleteConfiguration,
+        clearMessages
+    } = useConfiguration();
 
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [selectedConfig, setSelectedConfig] = useState<Configuration | null>(null);
-  const [formData, setFormData] = useState({ name: '', value: '' });
+    const { addNotification } = useNotifications();
 
-  const handleCreate = async () => {
-    try {
-      await createConfiguration(formData);
-      setShowCreateModal(false);
-      setFormData({ name: '', value: '' });
-    } catch {
-      // Error is handled by the hook
+    const [internalShowCreateModal, setInternalShowCreateModal] = useState(false);
+    const showCreateModal = externalShowCreateModal !== undefined ? externalShowCreateModal : internalShowCreateModal;
+    const closeCreateModal = externalShowCreateModal !== undefined ? onCloseCreateModal || (() => { }) : () => setInternalShowCreateModal(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [selectedConfig, setSelectedConfig] = useState<Configuration | null>(null);
+    const [formData, setFormData] = useState({ name: '', value: '' });
+
+    // Handle notifications for error and success messages
+    useEffect(() => {
+        if (error) {
+            addNotification('error', 'Error', error);
+            clearMessages();
+        }
+    }, [error, addNotification, clearMessages]);
+
+    useEffect(() => {
+        if (success) {
+            addNotification('success', 'Success', success);
+            clearMessages();
+        }
+    }, [success, addNotification, clearMessages]);
+
+    const handleCreate = async () => {
+        try {
+            await createConfiguration(formData);
+            closeCreateModal();
+            setFormData({ name: '', value: '' });
+        } catch {
+            // Error is handled by the hook
+        }
+    };
+
+    const handleEdit = async () => {
+        if (!selectedConfig) return;
+        try {
+            await updateConfiguration(selectedConfig.id, formData);
+            setShowEditModal(false);
+            setSelectedConfig(null);
+            setFormData({ name: '', value: '' });
+        } catch {
+            // Error is handled by the hook
+        }
+    };
+
+    const handleDelete = async () => {
+        if (!selectedConfig) return;
+        try {
+            await deleteConfiguration(selectedConfig.id);
+            setShowDeleteModal(false);
+            setSelectedConfig(null);
+        } catch {
+            // Error is handled by the hook
+        }
+    };
+
+    const openEditModal = (config: Configuration) => {
+        setSelectedConfig(config);
+        setFormData({ name: config.name, value: config.value });
+        setShowEditModal(true);
+    };
+
+    const openDeleteModal = (config: Configuration) => {
+        setSelectedConfig(config);
+        setShowDeleteModal(true);
+    };
+
+    const closeModals = () => {
+        closeCreateModal();
+        setShowEditModal(false);
+        setShowDeleteModal(false);
+        setSelectedConfig(null);
+        setFormData({ name: '', value: '' });
+        clearMessages();
+    };
+
+    const formatDate = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    };
+
+    const columns: Column<Configuration>[] = [
+        {
+            key: 'name',
+            header: 'Nombre',
+            render: (value, item) => (
+                <div className="flex items-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-blue-600 rounded-full flex items-center justify-center mr-3">
+                        <Settings className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                        <div className="text-sm font-medium text-gray-300">{value}</div>
+                        <div className="text-sm text-gray-400">ID: {item.id}</div>
+                    </div>
+                </div>
+            )
+        },
+        {
+            key: 'value',
+            header: 'Valor',
+            render: (value) => (
+                <div className="max-w-xs truncate" title={String(value)}>
+                    {String(value)}
+                </div>
+            )
+        },
+        {
+            key: 'created_at',
+            header: 'Creado',
+            render: (value) => formatDate(String(value))
+        },
+        {
+            key: 'actions',
+            header: 'Acciones',
+            render: (_, item) => (
+                <div className="space-x-2">
+                    <Button
+                        onClick={() => openEditModal(item)}
+                        variant="outline"
+                        size="sm"
+                    >
+                        Editar
+                    </Button>
+                    <Button
+                        onClick={() => openDeleteModal(item)}
+                        variant="danger"
+                        size="sm"
+                    >
+                        Eliminar
+                    </Button>
+                </div>
+            )
+        }
+    ];
+
+    if (loading && configurations.length === 0) {
+        return (
+            <div className={`flex items-center justify-center h-64 ${className}`}>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-300">Cargando configuraciones...</span>
+            </div>
+        );
     }
-  };
 
-  const handleEdit = async () => {
-    if (!selectedConfig) return;
-    try {
-      await updateConfiguration(selectedConfig.id, formData);
-      setShowEditModal(false);
-      setSelectedConfig(null);
-      setFormData({ name: '', value: '' });
-    } catch {
-      // Error is handled by the hook
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!selectedConfig) return;
-    try {
-      await deleteConfiguration(selectedConfig.id);
-      setShowDeleteModal(false);
-      setSelectedConfig(null);
-    } catch {
-      // Error is handled by the hook
-    }
-  };
-
-  const openEditModal = (config: Configuration) => {
-    setSelectedConfig(config);
-    setFormData({ name: config.name, value: config.value });
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (config: Configuration) => {
-    setSelectedConfig(config);
-    setShowDeleteModal(true);
-  };
-
-  const closeModals = () => {
-    setShowCreateModal(false);
-    setShowEditModal(false);
-    setShowDeleteModal(false);
-    setSelectedConfig(null);
-    setFormData({ name: '', value: '' });
-    clearMessages();
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('es-ES', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  if (loading && configurations.length === 0) {
     return (
-      <div className={`flex items-center justify-center h-64 ${className}`}>
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Cargando configuraciones...</span>
-      </div>
+        <div className={className}>
+
+            {/* Configurations Table */}
+            {loading ? (
+                <div className="flex justify-center py-12">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+            ) : (
+                <DataTable
+                    data={configurations}
+                    columns={columns}
+                    keyField="id"
+                    loading={false}
+                    emptyMessage="No hay configuraciones disponibles"
+                />
+            )}
+
+            {configurations.length === 0 && !loading && (
+                <div className="text-center py-12">
+                    <Settings className="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 className="mt-2 text-sm font-medium text-gray-100">No hay configuraciones</h3>
+                    <p className="mt-1 text-sm text-gray-400">Comienza creando tu primera configuración.</p>
+                </div>
+            )}
+
+            {/* Create Modal */}
+            <Modal
+                isOpen={showCreateModal}
+                onClose={closeModals}
+                title="Nueva Configuración"
+                size="md"
+            >
+                <div className="p-6">
+                    <div className="space-y-4">
+                        <FormField label="Nombre" required>
+                            <Input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                placeholder="ej: upload_path"
+                            />
+                        </FormField>
+                        <FormField label="Valor" required>
+                            <textarea
+                                value={formData.value}
+                                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                                rows={3}
+                                className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
+                                placeholder="ej: /uploads"
+                            />
+                        </FormField>
+                    </div>
+                    <div className="flex justify-end space-x-3 mt-6">
+                        <Button
+                            onClick={closeModals}
+                            variant="secondary"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleCreate}
+                            disabled={loading || !formData.name.trim() || !formData.value.trim()}
+                            variant="primary"
+                        >
+                            {loading ? 'Creando...' : 'Crear'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Edit Modal */}
+            <Modal
+                isOpen={showEditModal}
+                onClose={closeModals}
+                title="Editar Configuración"
+                size="md"
+            >
+                <div className="p-6">
+                    <div className="space-y-4">
+                        <FormField label="Nombre" required>
+                            <Input
+                                type="text"
+                                value={formData.name}
+                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            />
+                        </FormField>
+                        <FormField label="Valor" required>
+                            <textarea
+                                value={formData.value}
+                                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                                rows={3}
+                                className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
+                            />
+                        </FormField>
+                    </div>
+                    <div className="flex justify-end space-x-3 mt-6">
+                        <Button
+                            onClick={closeModals}
+                            variant="secondary"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleEdit}
+                            disabled={loading || !formData.name.trim() || !formData.value.trim()}
+                            variant="primary"
+                        >
+                            {loading ? 'Guardando...' : 'Guardar'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Delete Modal */}
+            <Modal
+                isOpen={showDeleteModal}
+                onClose={closeModals}
+                title="Eliminar Configuración"
+                size="md"
+            >
+                <div className="p-6">
+                    <p className="text-sm text-gray-400 mb-4">
+                        ¿Estás seguro de que quieres eliminar la configuración <strong>{selectedConfig?.name}</strong>?
+                        Esta acción no se puede deshacer.
+                    </p>
+                    <div className="flex justify-end space-x-3">
+                        <Button
+                            onClick={closeModals}
+                            variant="secondary"
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleDelete}
+                            disabled={loading}
+                            variant="danger"
+                        >
+                            {loading ? 'Eliminando...' : 'Eliminar'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+        </div>
     );
-  }
-
-  return (
-    <div className={`bg-white shadow rounded-lg ${className}`}>
-      {/* Header */}
-      <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Configuraciones del Sistema
-            </h3>
-            <p className="mt-1 max-w-2xl text-sm text-gray-500">
-              Gestiona los parámetros de configuración de la aplicación
-            </p>
-          </div>
-          <button
-            onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            <svg className="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Nueva Configuración
-          </button>
-        </div>
-      </div>
-
-      {/* Status Messages */}
-      {error && (
-        <div className="mx-4 mt-4 bg-red-50 border border-red-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-red-700">{error}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {success && (
-        <div className="mx-4 mt-4 bg-green-50 border border-green-200 rounded-md p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-green-700">{success}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Configurations Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Nombre
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Valor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Creado
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actualizado
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Acciones
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {configurations.map((config) => (
-              <tr key={config.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {config.name}
-                </td>
-                <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate" title={config.value}>
-                  {config.value}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(config.created_at)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {formatDate(config.updated_at)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => openEditModal(config)}
-                    className="text-blue-600 hover:text-blue-900 mr-4"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    onClick={() => openDeleteModal(config)}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {configurations.length === 0 && !loading && (
-        <div className="text-center py-12">
-          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">No hay configuraciones</h3>
-          <p className="mt-1 text-sm text-gray-500">Comienza creando tu primera configuración.</p>
-        </div>
-      )}
-
-      {/* Create Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Nueva Configuración</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="ej: upload_path"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Valor</label>
-                  <textarea
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="ej: /uploads"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={closeModals}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleCreate}
-                  disabled={loading || !formData.name.trim() || !formData.value.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Creando...' : 'Crear'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showEditModal && selectedConfig && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Editar Configuración</h3>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Nombre</label>
-                  <input
-                    type="text"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Valor</label>
-                  <textarea
-                    value={formData.value}
-                    onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                    rows={3}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <button
-                  onClick={closeModals}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleEdit}
-                  disabled={loading || !formData.name.trim() || !formData.value.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Guardando...' : 'Guardar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Modal */}
-      {showDeleteModal && selectedConfig && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Eliminar Configuración</h3>
-              <p className="text-sm text-gray-500 mb-4">
-                ¿Estás seguro de que quieres eliminar la configuración <strong>{selectedConfig.name}</strong>?
-                Esta acción no se puede deshacer.
-              </p>
-              <div className="flex justify-end space-x-3">
-                <button
-                  onClick={closeModals}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Eliminando...' : 'Eliminar'}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
 };

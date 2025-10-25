@@ -12,6 +12,11 @@ import { DeleteModal } from './DeleteModal';
 import { FileList } from './FileList';
 import { MoveFilesModal } from './MoveFilesModal';
 import { FilePreviewModal, canPreviewFile } from './viewers';
+import { Button } from './Button';
+import { DataTable } from './data';
+import type { Column } from './data';
+import { Upload, Move, Check, X, ChevronUp, Plus, Download, Folder as FolderIcon, File as FileIcon, Trash2, Circle, CircleCheck } from 'lucide-react';
+import { CardTableToggle } from './ViewToggle';
 
 interface FileBrowserProps {
   onFileSelect?: (file: FileInfo) => void;
@@ -25,16 +30,18 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   allowSelection = false
 }) => {
   const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
 
   const {
     currentPath,
     folderContent,
+    allFiles,
     loading,
     error,
     defaultViewMode,
+    isAdmin,
     navigateToPath,
     navigateToParent,
     getBreadcrumbs,
@@ -50,7 +57,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     }
   }, [defaultViewMode]);
 
-  const handleViewModeChange = async (newViewMode: 'list' | 'grid') => {
+  const handleViewModeChange = async (newViewMode: 'table' | 'cards') => {
     setViewMode(newViewMode);
     await updateDefaultViewMode(newViewMode);
   };
@@ -146,7 +153,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   };
 
   const handleDownloadMultiple = async () => {
-    const selectedFiles = folderContent?.files.filter(file => selectedItems.has(file.id)) || [];
+    const selectedFiles = (isAdmin ? allFiles?.files : folderContent?.files)?.filter(file => selectedItems.has(file.id)) || [];
 
     // For now, only download files (folders would require ZIP creation)
     for (const file of selectedFiles) {
@@ -184,27 +191,171 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  // Combined type for files and folders in DataTable
+  type FileBrowserItem = {
+    id: number;
+    name: string;
+    type: 'folder' | 'file';
+    size?: number;
+    modifiedAt?: string;
+    originalItem: Folder | FileInfo;
+  };
+
+  // Convert folders and files to combined items
+  const getCombinedItems = (): FileBrowserItem[] => {
+    if (isAdmin && allFiles) {
+      return allFiles.files.map(file => ({
+        id: file.id,
+        name: file.original_filename,
+        type: 'file' as const,
+        size: file.size,
+        modifiedAt: file.created_at,
+        originalItem: file
+      }));
+    } else if (folderContent) {
+      const folderItems: FileBrowserItem[] = folderContent.folders.map(folder => ({
+        id: folder.id,
+        name: folder.name,
+        type: 'folder' as const,
+        modifiedAt: folder.created_at,
+        originalItem: folder
+      }));
+
+      const fileItems: FileBrowserItem[] = folderContent.files.map(file => ({
+        id: file.id,
+        name: file.original_filename,
+        type: 'file' as const,
+        size: file.size,
+        modifiedAt: file.created_at,
+        originalItem: file
+      }));
+
+      return [...folderItems, ...fileItems];
+    }
+    return [];
+  };
+
+  // DataTable columns
+  const columns: Column<FileBrowserItem>[] = [
+    {
+      key: 'select',
+      header: '',
+      render: (_, item) => (
+        <Button
+          variant="ghost"
+          size="xs"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleItemSelect(item.id);
+          }}
+        >
+          {selectedItems.has(item.id) ? (
+            <CircleCheck className="h-4 w-4 text-blue-500" />
+          ) : (
+            <Circle className="h-4 w-4 text-gray-400" />
+          )}
+        </Button>
+      )
+    },
+    {
+      key: 'name',
+      header: 'Name',
+      render: (value, item) => (
+        <div className="flex items-center space-x-2">
+          {item.type === 'folder' ? (
+            <FolderIcon className="h-4 w-4 text-blue-500" />
+          ) : (
+            <FileIcon className="h-4 w-4 text-gray-400" />
+          )}
+          <span className="text-sm font-medium text-gray-100">{String(value)}</span>
+        </div>
+      ),
+      sortable: true
+    },
+    {
+      key: 'type',
+      header: 'Type',
+      render: (value) => (
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${value === 'folder'
+          ? 'bg-blue-900 text-blue-100'
+          : 'bg-gray-900 text-gray-200'
+          }`}>
+          {String(value)}
+        </span>
+      ),
+      sortable: true
+    },
+    {
+      key: 'size',
+      header: 'Size',
+      render: (value, item) => (
+        <span className="text-sm text-gray-400">
+          {item.type === 'file' && typeof value === 'number' ? formatFileSize(value) : '-'}
+        </span>
+      ),
+      sortable: true
+    },
+    {
+      key: 'modifiedAt',
+      header: 'Modified',
+      render: (value) => (
+        <span className="text-sm text-gray-400">
+          {value ? new Date(String(value)).toLocaleDateString() : '-'}
+        </span>
+      ),
+      sortable: true
+    },
+    {
+      key: 'actions',
+      header: 'Actions',
+      render: (_, item) => (
+        <div className="flex items-center space-x-2">
+          {item.type === 'file' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDownloadClick(item.originalItem as FileInfo);
+              }}
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteClick(item.type, item.id, item.name, item.type === 'folder' ? (item.originalItem as Folder).path : undefined);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      )
+    }
+  ];
+
+  const combinedItems = getCombinedItems();
+
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading...</span>
-      </div>
-    );
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-400 border-gray-600"></div>
+      <span className="ml-2 text-gray-400">Loading...</span>
+    </div>
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
+      <div className="bg-red-900 border border-red-700 rounded-md p-4">
         <div className="flex">
           <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-            </svg>
+            <X className="h-5 w-5 text-red-400" />
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <div className="mt-2 text-sm text-red-700">{error}</div>
+            <h3 className="text-sm font-medium text-red-200">Error</h3>
+            <div className="mt-2 text-sm text-red-300">{error}</div>
           </div>
         </div>
       </div>
@@ -212,9 +363,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   }
 
   return (
-    <div className="bg-white shadow rounded-lg">
+    <div>
       {/* Breadcrumbs */}
-      <div className="px-4 py-3 border-b border-gray-200">
+      <div className="py-3">
         <Breadcrumb
           breadcrumbs={getBreadcrumbs()}
           onBreadcrumbClick={handleBreadcrumbClick}
@@ -222,102 +373,73 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       </div>
 
       {/* Toolbar */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            {currentPath !== '/' && (
-              <button
-                onClick={navigateToParent}
-                className="inline-flex items-center px-3 py-1 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                Up
-              </button>
-            )}
-            <button
-              onClick={openCreateFolderModal}
-              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      <div className="flex items-center justify-between py-3 bg-gray-750">
+        <div className="flex items-center space-x-2">
+          {currentPath !== '/' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={navigateToParent}
             >
-              <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              New Folder
-            </button>
-            <button
-              onClick={openUploadModal}
-              className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-            >
-              <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-              Upload Files
-            </button>
-            {selectedItems.size > 0 && (
-              <>
-                <button
-                  onClick={handleDownloadMultiple}
-                  className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-                >
-                  <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  Download {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
-                </button>
-                <button
-                  onClick={openMoveModal}
-                  disabled={movingFiles}
-                  className="inline-flex items-center px-3 py-1 border border-transparent shadow-sm text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <svg className="-ml-0.5 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-                  </svg>
-                  Move {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
-                </button>
-              </>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
-            {/* View Mode Toggle */}
-            <div className="flex items-center border border-gray-300 rounded-md">
-              <button
-                onClick={() => handleViewModeChange('list')}
-                className={`px-3 py-1 text-sm font-medium rounded-l-md ${
-                  viewMode === 'list'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-                title="List view"
+              <ChevronUp className="-ml-0.5 mr-2 h-4 w-4" />
+              Up
+            </Button>
+          )}
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={openCreateFolderModal}
+          >
+            <Plus className="-ml-0.5 mr-2 h-4 w-4" />
+            New Folder
+          </Button>
+          <Button
+            variant="success"
+            size="sm"
+            onClick={openUploadModal}
+          >
+            <Upload className="-ml-0.5 mr-2 h-4 w-4" />
+            Upload Files
+          </Button>
+          {selectedItems.size > 0 && (
+            <>
+              <Button
+                variant="success"
+                size="sm"
+                onClick={handleDownloadMultiple}
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-                </svg>
-              </button>
-              <button
-                onClick={() => handleViewModeChange('grid')}
-                className={`px-3 py-1 text-sm font-medium rounded-r-md ${
-                  viewMode === 'grid'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
-                }`}
-                title="Grid view"
+                <Download className="-ml-0.5 mr-2 h-4 w-4" />
+                Download {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={openMoveModal}
+                disabled={movingFiles}
               >
-                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-            </div>
-            <div className="text-sm text-gray-500">
-              {folderContent && `${folderContent.folders.length} folders, ${folderContent.files.length} files`}
-            </div>
+                <Move className="-ml-0.5 mr-2 h-4 w-4" />
+                Move {selectedItems.size} item{selectedItems.size > 1 ? 's' : ''}
+              </Button>
+            </>
+          )}
+        </div>
+        <div className="flex items-center space-x-2">
+          <CardTableToggle
+            value={viewMode}
+            onChange={handleViewModeChange}
+          />
+          <div className="text-sm text-gray-400">
+            {isAdmin
+              ? (allFiles ? `${allFiles.total} archivos totales` : 'Cargando archivos...')
+              : (folderContent ? `${folderContent.folders.length} folders, ${folderContent.files.length} files` : 'Cargando...')
+            }
           </div>
         </div>
       </div>
 
       {/* Status Messages */}
       {moveError && (
-        <div className="px-4 py-3 bg-red-50 border-l-4 border-red-400">
+        <div className="mx-4 mb-4 px-4 py-3 bg-red-900 border-l-4 border-red-400">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -325,52 +447,105 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">{moveError}</p>
+              <p className="text-sm text-red-300">{moveError}</p>
             </div>
           </div>
         </div>
       )}
 
       {moveSuccess && (
-        <div className="px-4 py-3 bg-green-50 border-l-4 border-green-400">
+        <div className="px-4 py-3 bg-green-900 border-l-4 border-green-400">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
+              <Check className="h-5 w-5 text-green-400" />
             </div>
             <div className="ml-3">
-              <p className="text-sm text-green-700">{moveSuccess}</p>
+              <p className="text-sm text-green-300">{moveSuccess}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Content */}
-      <div className="overflow-hidden">
-        {folderContent && (folderContent.folders.length > 0 || folderContent.files.length > 0) ? (
-          <FileList
-            folders={folderContent.folders}
-            files={folderContent.files}
-            allowSelection={allowSelection}
-            selectedItems={selectedItems}
-            onFolderClick={handleFolderClick}
-            onFileClick={handleFileClick}
-            onItemSelect={handleItemSelect}
-            onDeleteClick={handleDeleteClick}
-            onDownloadClick={handleDownloadClick}
-            formatFileSize={formatFileSize}
-            viewMode={viewMode}
-          />
+      <div>
+        {isAdmin ? (
+          // Admin view: show all files
+          allFiles && allFiles.files.length > 0 ? (
+            viewMode === 'table' ? (
+              <DataTable
+                data={combinedItems}
+                columns={columns}
+                keyField="id"
+                loading={false}
+                emptyMessage="No hay archivos"
+                onRowClick={(item) => {
+                  if (item.type === 'file') {
+                    handleFileClick(item.originalItem as FileInfo);
+                  }
+                }}
+                className="border border-gray-700"
+              />
+            ) : (
+              <FileList
+                folders={[]}
+                files={allFiles.files}
+                allowSelection={allowSelection}
+                selectedItems={selectedItems}
+                onFolderClick={handleFolderClick}
+                onFileClick={handleFileClick}
+                onItemSelect={handleItemSelect}
+                onDeleteClick={handleDeleteClick}
+                onDownloadClick={handleDownloadClick}
+                formatFileSize={formatFileSize}
+              />
+            )
+          ) : (
+            <div className="text-center py-12">
+              <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-100">No hay archivos</h3>
+              <p className="mt-1 text-sm text-gray-400">No se encontraron archivos en el sistema.</p>
+            </div>
+          )
         ) : (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5a2 2 0 012-2h4a2 2 0 012 2v2H8V5z" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No files or folders</h3>
-            <p className="mt-1 text-sm text-gray-500">This folder is empty.</p>
-          </div>
+          // Regular user view: show folder structure
+          folderContent && (folderContent.folders.length > 0 || folderContent.files.length > 0) ? (
+            viewMode === 'table' ? (
+              <DataTable
+                data={combinedItems}
+                columns={columns}
+                keyField="id"
+                loading={false}
+                emptyMessage="No hay archivos o carpetas"
+                onRowClick={(item) => {
+                  if (item.type === 'folder') {
+                    handleFolderClick(item.originalItem as Folder);
+                  } else {
+                    handleFileClick(item.originalItem as FileInfo);
+                  }
+                }}
+                className="border border-gray-700"
+              />
+            ) : (
+              <FileList
+                folders={folderContent.folders}
+                files={folderContent.files}
+                allowSelection={allowSelection}
+                selectedItems={selectedItems}
+                onFolderClick={handleFolderClick}
+                onFileClick={handleFileClick}
+                onItemSelect={handleItemSelect}
+                onDeleteClick={handleDeleteClick}
+                onDownloadClick={handleDownloadClick}
+                formatFileSize={formatFileSize}
+              />
+            )
+          ) : (
+            <div className="text-center py-12">
+              <FolderIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-100">No files or folders</h3>
+              <p className="mt-1 text-sm text-gray-400">This folder is empty.</p>
+            </div>
+          )
         )}
       </div>
 

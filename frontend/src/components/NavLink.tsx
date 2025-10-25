@@ -15,8 +15,8 @@ export function NavLink({ href, children }: NavLinkProps) {
       href={href}
       className={`no-underline px-4 py-2.5 rounded text-sm font-medium transition-colors ${
         isActive 
-          ? 'text-blue-600 bg-blue-50' 
-          : 'text-gray-600 hover:text-gray-800'
+          ? 'text-blue-400 bg-blue-900/20' 
+          : 'text-gray-400 hover:text-gray-200 hover:bg-gray-700'
       }`}
     >
       {children}

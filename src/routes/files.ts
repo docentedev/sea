@@ -245,7 +245,7 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       // Los archivos están disponibles en request.body cuando attachFieldsToBody: true
       const body = request.body as any;
       const files = body.files || [];
-      
+
       // Handle virtual_folder_path - it might be an object with value property in multipart
       let virtualFolderPath = '/';
       if (body.virtual_folder_path) {
@@ -357,6 +357,7 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       const maxFilesPerUpload = parseInt(fileService.getConfigValue('max_files_per_upload') || '10');
       const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,application/pdf,text/*';
       const blockedFileExtensions = fileService.getBlockedFileExtensions();
+      const allowedFileExtensions = fileService.getAllowedFileExtensions();
       const defaultFileView = fileService.getDefaultFileView();
 
       return reply.send({
@@ -367,6 +368,7 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
           maxFilesPerUpload,
           allowedFileTypes: allowedFileTypes.split(','),
           blockedFileExtensions,
+          allowedFileExtensions,
           defaultFileView
         },
         timestamp: new Date().toISOString()
@@ -448,32 +450,32 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
       });
     }
   });
-};
 
-// Get upload configuration
-const getUploadConfig = async (request: FastifyRequest, reply: FastifyReply) => {
-  try {
-    const fileService = new FileService();
+  // Get upload configuration
+  const getUploadConfig = async (request: FastifyRequest, reply: FastifyReply) => {
+    try {
+      const fileService = new FileService();
 
-    const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,text/*,application/pdf';
-    const maxFileSize = fileService.getMaxFileSize();
+      const allowedFileTypes = fileService.getConfigValue('allowed_file_types') || 'image/*,text/*,application/pdf';
+      const maxFileSize = fileService.getMaxFileSize();
 
-    return reply.send({
-      success: true,
-      data: {
-        allowedFileTypes: allowedFileTypes.split(',').map((type: string) => type.trim()),
-        maxFileSize
-      },
-      timestamp: new Date().toISOString()
-    });
-  } catch (error: any) {
-    console.error('Error getting upload config:', error);
-    return reply.status(500).send({
-      success: false,
-      message: error.message || 'Failed to get upload configuration',
-      timestamp: new Date().toISOString()
-    });
-  }
+      return reply.send({
+        success: true,
+        data: {
+          allowedFileTypes: allowedFileTypes.split(',').map((type: string) => type.trim()),
+          maxFileSize
+        },
+        timestamp: new Date().toISOString()
+      });
+    } catch (error: any) {
+      console.error('Error getting upload config:', error);
+      return reply.status(500).send({
+        success: false,
+        message: error.message || 'Failed to get upload configuration',
+        timestamp: new Date().toISOString()
+      });
+    }
+  };
 };
 
 export default fileRoutes;

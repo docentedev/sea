@@ -2,6 +2,7 @@ import { FileBrowser } from '../components/FileBrowser';
 import type { FileInfo, Folder } from '../types/api';
 
 export function FileBrowserPage() {
+
   const handleFileSelect = (file: FileInfo) => {
     console.log('File selected:', file);
     // TODO: Implement file actions (download, delete, etc.)
@@ -13,16 +14,24 @@ export function FileBrowserPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">File Browser</h1>
-          <p className="mt-2 text-sm text-gray-600">
-            Navigate through your virtual folders and manage your files
-          </p>
+    <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <div className="bg-gray-800 shadow-sm border-b border-gray-700">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-100">File Browser</h1>
+              <p className="mt-1 text-sm text-gray-400">
+                Browse and manage files in your NAS Cloud storage
+              </p>
+            </div>
+          </div>
         </div>
+      </div>
 
-        <div className="bg-white shadow rounded-lg">
+      {/* Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-gray-800 shadow rounded-lg">
           <div className="px-4 py-5 sm:p-6">
             <FileBrowser
               onFileSelect={handleFileSelect}

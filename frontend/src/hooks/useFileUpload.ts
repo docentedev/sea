@@ -37,7 +37,20 @@ export const useFileUpload = (currentPath: string, onUploadSuccess: () => void) 
   const isFileTypeAllowed = (mimeType: string, fileName: string): boolean => {
     if (!uploadConfig) return true; // Allow if config not loaded yet
 
-    // Check MIME type
+    const fileExt = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+
+    // Check allowed extensions first (whitelist takes precedence)
+    if (uploadConfig.allowedFileExtensions && uploadConfig.allowedFileExtensions.length > 0) {
+      if (uploadConfig.allowedFileExtensions.includes(fileExt)) {
+        // Extension is explicitly allowed, skip MIME type check
+        return true;
+      } else {
+        // Extension is not in whitelist, reject immediately
+        return false;
+      }
+    }
+
+    // If no extension whitelist is configured, check MIME type
     const mimeAllowed = uploadConfig.allowedFileTypes.some(allowedType => {
       if (allowedType.includes('*')) {
         // Handle wildcard patterns like "image/*"
@@ -54,7 +67,6 @@ export const useFileUpload = (currentPath: string, onUploadSuccess: () => void) 
     }
 
     // Check file extension against blocked extensions
-    const fileExt = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
     if (uploadConfig.blockedFileExtensions.includes(fileExt)) {
       return false;
     }
@@ -71,15 +83,22 @@ export const useFileUpload = (currentPath: string, onUploadSuccess: () => void) 
       const invalidFiles = fileArray.filter(file => !isFileTypeAllowed(file.type, file.name));
       if (invalidFiles.length > 0) {
         const blockedExts = uploadConfig.blockedFileExtensions;
+        const allowedExts = uploadConfig.allowedFileExtensions || [];
         const errors = invalidFiles.map(file => {
           const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+          const mimetype = file.type || '(desconocido)';
+          let reason = '';
           if (blockedExts.includes(fileExt)) {
-            return `${file.name} (blocked extension: ${fileExt})`;
+            reason = `bloqueada por extensión`;
+          } else if (allowedExts.length > 0 && !allowedExts.includes(fileExt)) {
+            reason = `extensión no permitida`;
           } else {
-            return `${file.name} (type: ${file.type})`;
+            reason = `mimetype no permitido`;
           }
+          return `${file.name} [mimetype: ${mimetype}] [extensión: ${fileExt}] → ${reason}`;
         });
-        setUploadError(`File(s) not allowed: ${errors.join(', ')}. Allowed types: ${uploadConfig.allowedFileTypes.join(', ')}. Blocked extensions: ${blockedExts.join(', ')}`);
+        const allowedExtsText = allowedExts.length > 0 ? ` Extensiones permitidas: ${allowedExts.join(', ')}.` : '';
+        setUploadError(`Archivo(s) no permitido(s): ${errors.join(', ')}. Tipos permitidos: ${uploadConfig.allowedFileTypes.join(', ')}.${allowedExtsText} Extensiones bloqueadas: ${blockedExts.join(', ')}.\nSi quieres admitir este tipo, agrega la extensión y el mimetype correspondiente en la configuración.`);
         return;
       }
 

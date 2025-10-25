@@ -2,13 +2,15 @@ import { useEffect, useCallback } from 'react';
 import { useApp } from '../hooks/useApp';
 import { apiService } from '../services/api';
 import { HealthStatus } from '../components/HealthStatus';
-import { LoadingSpinner } from '../components/LoadingAndError';
+import { LoadingState } from '../components/state/LoadingState';
 import { ErrorMessage } from '../components/LoadingAndError';
+import { Button } from '../components/Button';
+import { RefreshCw } from 'lucide-react';
 
 export function HealthPage() {
   const { state, dispatch } = useApp();
 
-    const fetchHealth = useCallback(async () => {
+  const fetchHealth = useCallback(async () => {
     dispatch({ type: 'SET_LOADING', payload: true });
     dispatch({ type: 'CLEAR_ERROR' });
 
@@ -29,33 +31,51 @@ export function HealthPage() {
     fetchHealth();
   };
 
-  if (state.loading) {
-    return <LoadingSpinner message="Checking system health..." />;
-  }
-
-  if (state.error) {
-    return <ErrorMessage message={state.error} onRetry={handleRetry} />;
-  }
-
-  if (!state.health) {
-    return <div>No health data available</div>;
-  }
-
   return (
-    <div>
-      <div className="flex justify-between items-center mb-5 px-5">
-        <h1 className="text-3xl font-bold text-gray-800">NAS Cloud System Health</h1>
-        <button
-          onClick={fetchHealth}
-          disabled={state.loading}
-          className={`px-5 py-2.5 bg-blue-500 text-white border-none rounded cursor-pointer transition-opacity ${
-            state.loading ? 'opacity-60 cursor-not-allowed' : 'hover:bg-blue-600'
-          }`}
-        >
-          Refresh
-        </button>
+    <div className="min-h-screen bg-gray-900">
+      {/* Header */}
+      <div className="bg-gray-800 shadow-sm border-b border-gray-700">
+        <div className="px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-100">NAS Cloud System Health</h1>
+              <p className="mt-1 text-sm text-gray-400">
+                Monitor system status, memory usage, and database health
+              </p>
+            </div>
+            <Button
+              onClick={fetchHealth}
+              disabled={state.loading}
+              variant="outline"
+              size="sm"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
       </div>
-      <HealthStatus health={state.health} />
+
+            {/* Content */}
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        {state.loading && (
+          <LoadingState message="Checking system health..." />
+        )}
+
+        {state.error && (
+          <ErrorMessage message={state.error} onRetry={handleRetry} />
+        )}
+
+        {!state.loading && !state.error && state.health && (
+          <HealthStatus health={state.health} />
+        )}
+
+        {!state.loading && !state.error && !state.health && (
+          <div className="text-center py-12">
+            <p className="text-gray-400">No health data available</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

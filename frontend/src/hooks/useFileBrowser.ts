@@ -1,13 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { apiService } from '../services/api';
-import type { FolderContent } from '../types/api';
+import { useAuth } from '../contexts/AuthContext';
+import type { FolderContent, FilesResponse } from '../types/api';
 
 export const useFileBrowser = () => {
+  const { isAdmin } = useAuth();
   const [currentPath, setCurrentPath] = useState<string>('/');
   const [folderContent, setFolderContent] = useState<FolderContent | null>(null);
+  const [allFiles, setAllFiles] = useState<FilesResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [defaultViewMode, setDefaultViewMode] = useState<'list' | 'grid'>('list');
+  const [defaultViewMode, setDefaultViewMode] = useState<'table' | 'cards'>('table');
 
   useEffect(() => {
     loadFolderContent(currentPath);
@@ -38,7 +41,7 @@ export const useFileBrowser = () => {
     loadDefaultViewMode();
   }, []);
 
-  const updateDefaultViewMode = async (viewMode: 'list' | 'grid') => {
+  const updateDefaultViewMode = async (viewMode: 'table' | 'cards') => {
     try {
       // Note: This would require a new API endpoint to update user preferences
       // For now, we'll just update local state
@@ -48,23 +51,36 @@ export const useFileBrowser = () => {
     }
   };
 
-  const loadFolderContent = async (path: string) => {
+  const loadFolderContent = useCallback(async (path: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiService.getFolderContents(path);
-      if (response.success) {
-        setFolderContent(response.data);
+      if (isAdmin()) {
+        // Admin users see all files
+        const response = await apiService.getAllFiles();
+        if (response) {
+          setAllFiles(response);
+          setFolderContent(null); // Clear folder content for admin view
+        } else {
+          setError('Failed to load files');
+        }
       } else {
-        setError('Failed to load folder content');
+        // Regular users see folder structure
+        const response = await apiService.getFolderContents(path);
+        if (response.success) {
+          setFolderContent(response.data);
+          setAllFiles(null); // Clear all files for regular view
+        } else {
+          setError('Failed to load folder content');
+        }
       }
     } catch (err) {
       const error = err as Error;
-      setError(error.message || 'Failed to load folder content');
+      setError(error.message || 'Failed to load content');
     } finally {
       setLoading(false);
     }
-  };
+  }, [isAdmin]);
 
   const navigateToPath = (path: string) => {
     setCurrentPath(path);
@@ -96,9 +112,11 @@ export const useFileBrowser = () => {
   return {
     currentPath,
     folderContent,
+    allFiles,
     loading,
     error,
     defaultViewMode,
+    isAdmin: isAdmin(),
     loadFolderContent,
     navigateToPath,
     navigateToParent,

@@ -73,8 +73,8 @@ export const FolderTreeSelector: React.FC<FolderTreeSelectorProps> = ({
     return (
       <div key={folder.id}>
         <div
-          className={`flex items-center py-2 px-3 hover:bg-gray-50 cursor-pointer rounded-md ${
-            isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+          className={`flex items-center py-2 px-3 hover:bg-gray-700 cursor-pointer transition-colors duration-200 ${
+            isSelected ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-500' : 'text-gray-200 hover:text-gray-100'
           } ${disabled || isCurrentPath ? 'opacity-50 cursor-not-allowed' : ''}`}
           style={{ paddingLeft: `${12 + indent}px` }}
           onClick={() => !disabled && !isCurrentPath && onSelectPath(folder.path)}
@@ -85,7 +85,7 @@ export const FolderTreeSelector: React.FC<FolderTreeSelectorProps> = ({
                 e.stopPropagation();
                 toggleExpanded(node);
               }}
-              className="mr-2 p-1 hover:bg-gray-200 rounded text-xs font-bold w-5 h-5 flex items-center justify-center"
+              className="mr-2 p-1 hover:bg-gray-600 text-gray-400 hover:text-gray-200 text-xs font-bold w-5 h-5 flex items-center justify-center rounded transition-colors duration-200"
               disabled={disabled}
             >
               {expanded ? '−' : '+'}
@@ -107,11 +107,11 @@ export const FolderTreeSelector: React.FC<FolderTreeSelectorProps> = ({
   };
 
   return (
-    <div className="border border-gray-300 rounded-md max-h-64 overflow-y-auto">
+    <div className="border border-gray-600 rounded-md max-h-64 overflow-y-auto bg-gray-800">
       {/* Root Directory */}
       <div
-        className={`flex items-center py-2 px-3 hover:bg-gray-50 cursor-pointer rounded-md ${
-          selectedPath === '/' ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+        className={`flex items-center py-2 px-3 hover:bg-gray-700 cursor-pointer transition-colors duration-200 ${
+          selectedPath === '/' ? 'bg-blue-900/50 text-blue-300 border-l-4 border-blue-500' : 'text-gray-200 hover:text-gray-100'
         } ${disabled || currentPath === '/' ? 'opacity-50 cursor-not-allowed' : ''}`}
         onClick={() => !disabled && currentPath !== '/' && onSelectPath('/')}
       >
