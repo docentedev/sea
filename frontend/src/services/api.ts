@@ -1,4 +1,4 @@
-import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest } from '../types/api';
+import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest, LogsResponse } from '../types/api';
 import { ApiError } from '../types/api';
 
 class ApiService {
@@ -292,6 +292,15 @@ class ApiService {
       method: 'PUT',
       body: JSON.stringify({ value }),
     });
+    return response.data;
+  }
+
+  async getLogs(page: number = 1, pageSize: number = 50): Promise<LogsResponse> {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      pageSize: pageSize.toString(),
+    });
+    const response = await this.request<ApiResponse<LogsResponse>>(`/api/logs?${params}`);
     return response.data;
   }
 }

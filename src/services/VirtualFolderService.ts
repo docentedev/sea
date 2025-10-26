@@ -104,7 +104,7 @@ export class VirtualFolderService {
     }
 
     // Check if folder has subfolders
-    const subfolders = await this.folderRepo.findByParentPath(folder.path, folder.user_id);
+    const subfolders = await this.folderRepo.findByParentPath(folder.path, folder.user_id ?? undefined);
     if (subfolders.length > 0) {
       throw new Error('Cannot delete folder with subfolders. Delete subfolders first.');
     }

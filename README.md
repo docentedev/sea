@@ -150,7 +150,6 @@ Para un seguimiento detallado del progreso y planificación técnica de cada fea
 ### API Endpoints
 - `GET /api/health` - Estado del sistema y base de datos
 - `GET /api/info` - Información del sistema y proceso
-- `GET /api/time` - Timestamp actual
 - `POST /api/login` - Autenticación de usuario (JWT)
 - `POST /api/users` - Crear usuario (requiere admin)
 - `GET /api/users` - Listar usuarios con paginación (requiere admin)
@@ -313,14 +312,6 @@ curl http://localhost:3000/health
 
 # Información detallada del sistema
 curl http://localhost:3000/info
-
-# Obtener timestamp actual
-curl http://localhost:3000/api/time
-
-# Echo de datos JSON
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"message":"Hola desde SEA!", "timestamp":"2023-10-23"}' \
-  http://localhost:3000/api/echo
 ```
 
 ### Ejemplo de respuesta `/health`:

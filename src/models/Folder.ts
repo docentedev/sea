@@ -3,7 +3,7 @@ export interface Folder {
   name: string;
   path: string; // ruta completa de la carpeta (ej: "/documents/work")
   parent_path: string | null; // ruta del padre (ej: "/documents") o null para root
-  user_id: number;
+  user_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -12,7 +12,7 @@ export interface CreateFolderData {
   name: string;
   path: string;
   parent_path: string | null;
-  user_id: number;
+  user_id: number | null;
 }
 
 export interface UpdateFolderData {

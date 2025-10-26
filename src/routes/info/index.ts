@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { InfoResponse } from '../types';
+import { InfoResponse } from '../../types';
+import { getInfo } from './get.js';
 
 const infoRoutes: FastifyPluginAsync = async (fastify) => {
   const infoSchema = {
@@ -17,14 +18,7 @@ const infoRoutes: FastifyPluginAsync = async (fastify) => {
     },
   };
 
-  fastify.get<{ Reply: InfoResponse }>('/api/info', { schema: infoSchema }, async (request, reply) => {
-    const info = fastify.systemService.getInfo();
-    
-    reply
-      .code(200)
-      .type('application/json')
-      .send(info);
-  });
+  fastify.get<{ Reply: InfoResponse }>('/api/info', { schema: infoSchema }, getInfo);
 };
 
 export default infoRoutes;

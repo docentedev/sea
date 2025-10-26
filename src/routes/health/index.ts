@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { HealthResponse } from '../types';
+import { HealthResponse } from '../../types';
+import { healthCheck } from './check.js';
 
 const healthRoutes: FastifyPluginAsync = async (fastify) => {
   // Schema para validación y documentación
@@ -47,14 +48,7 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
     },
   };
 
-  fastify.get<{ Reply: HealthResponse }>('/api/health', { schema: healthSchema }, async (request, reply) => {
-    const health = fastify.systemService.getHealth();
-    
-    reply
-      .code(200)
-      .type('application/json')
-      .send(health);
-  });
+  fastify.get<{ Reply: HealthResponse }>('/api/health', { schema: healthSchema }, healthCheck);
 };
 
 export default healthRoutes;

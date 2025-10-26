@@ -69,7 +69,7 @@ export const Button: React.FC<ButtonProps> = ({
     const variantClass = isActive ? activeVariantClasses[variant] : variantClasses[variant];
     const sizeClass = sizeClasses[size];
 
-    const combinedClassName = `${baseClasses} ${sizeClass} ${variantClass} ${className}`.trim();
+    const combinedClassName = `${baseClasses} ${sizeClass} ${variantClass} ${className} ${disabled ? 'opacity-60 cursor-not-allowed' : ''}`.trim();
 
     return (
         <button

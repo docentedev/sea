@@ -17,6 +17,8 @@ export interface ServerConfig {
   environment: string;
   logger: boolean;
   trustProxy: boolean;
+  loggingPort?: number;
+  loggingEnabled?: boolean;
 }
 
 export interface UserConfig {
@@ -37,6 +39,7 @@ export interface AppConfig {
 
 export interface DatabaseConfig {
   path: string;
+  logsPath?: string;
 }
 
 export interface ConfigFile {
@@ -45,6 +48,8 @@ export interface ConfigFile {
     host: string;
     trustProxy: boolean;
     logger: boolean;
+    loggingEnabled?: boolean;
+    loggingPort?: number;
   };
   database: DatabaseConfig;
   users: {
@@ -136,6 +141,8 @@ export const config: ServerConfig = {
   environment: process.env.NODE_ENV || 'production',
   logger: fileConfig.server.logger,
   trustProxy: fileConfig.server.trustProxy,
+  loggingPort: fileConfig.server.loggingPort,
+  loggingEnabled: fileConfig.server.loggingEnabled,
 };
 
 export const appConfig: AppConfig = {

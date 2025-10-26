@@ -62,12 +62,12 @@ export const DB_SCHEMA = {
       path TEXT NOT NULL,
       size INTEGER NOT NULL,
       mime_type TEXT NOT NULL,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER,
       folder_path TEXT NOT NULL,
       virtual_folder_path TEXT DEFAULT '/',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     )
   `,
 
@@ -85,10 +85,10 @@ export const DB_SCHEMA = {
       name TEXT NOT NULL,
       path TEXT UNIQUE NOT NULL,
       parent_path TEXT,
-      user_id INTEGER NOT NULL,
+      user_id INTEGER,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (user_id) REFERENCES users(id)
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
     )
   `,
 

@@ -218,3 +218,28 @@ export interface UpdateConfigurationRequest {
   name?: string;
   value?: string;
 }
+
+
+// get /api/logs
+export interface Log {
+  id: number;
+  timestamp: string;
+  level: string;
+  service: string;
+  message: string;
+  userId: number | null;
+  userEmail: string | null;
+  ipAddress: string | null;
+  userAgent: string | null;
+  createdAt: string;
+}
+
+export interface LogsResponse {
+  logs: Log[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}

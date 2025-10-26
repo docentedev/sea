@@ -11,6 +11,8 @@ import { NavLink } from './components/NavLink';
 import { useState } from 'react';
 import { Menu, MenuItem } from './components/Menu';
 import { NotificationProvider, NotificationContainer, useNotifications } from './components/notifications';
+import LogsPage from './pages/LogsPage';
+import { FileText, LogOut, Settings, Users } from 'lucide-react';
 
 function AppContent() {
   const { state, logout } = useAuth();
@@ -67,17 +69,18 @@ function AppContent() {
               </button>
               {menuOpen && (
                 <Menu>
-                  <MenuItem onClick={logout}>Logout</MenuItem>
                   {state.user?.role && (
                     typeof state.user.role === 'object' 
-                      ? state.user.role.name === 'admin' 
-                      : state.user.role === 'admin' || state.user.role.includes('admin')
+                    ? state.user.role.name === 'admin' 
+                    : state.user.role === 'admin' || state.user.role.includes('admin')
                   ) && (
                     <>
-                      <MenuItem href="/users">Manage Users</MenuItem>
-                      <MenuItem href="/config">Configuration</MenuItem>
+                      <MenuItem href="/users" icon={<Users className="w-4 h-4 mr-2" />}>Manage Users</MenuItem>
+                      <MenuItem href="/config" icon={<Settings className="w-4 h-4 mr-2" />}>Configuration</MenuItem>
+                      <MenuItem href="/logs" icon={<FileText className="w-4 h-4 mr-2" />}>View Logs</MenuItem>
                     </>
                   )}
+                    <MenuItem onClick={logout} icon={<LogOut className="w-4 h-4 mr-2" />}>Logout</MenuItem>
                 </Menu>
               )}
             </div>
@@ -92,6 +95,7 @@ function AppContent() {
         <Route path="/users" component={UserManagementPage} />
         <Route path="/browser" component={FileBrowserPage} />
         <Route path="/config" component={ConfigurationPage} />
+        <Route path="/logs" component={LogsPage} />
       </main>
 
       {/* Notification container */}

@@ -58,14 +58,6 @@ curl http://localhost:3000/health
 # ℹ️ Información del sistema
 curl http://localhost:3000/info
 
-# ⏰ Timestamp actual
-curl http://localhost:3000/api/time
-
-# 🔄 Echo de datos
-curl -X POST -H "Content-Type: application/json" \
-  -d '{"message":"Hola desde SEA!"}' \
-  http://localhost:3000/api/echo
-
 # 🌐 Interfaz web
 open http://localhost:3000  # macOS
 # o visita http://localhost:3000 en tu navegador

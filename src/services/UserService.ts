@@ -2,17 +2,23 @@ import { DatabaseSync } from 'node:sqlite';
 import { DatabaseConnection } from '../database/connection.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { RoleRepository } from '../repositories/RoleRepository.js';
+import { FileService } from './FileService.js';
+import { FolderService } from './FolderService.js';
 import { User, CreateUserData, UpdateUserData, UserWithRole } from '../models/User.js';
 
 export class UserService {
   private db: DatabaseSync;
   private userRepo: UserRepository;
   private roleRepo: RoleRepository;
+  private fileService: FileService;
+  private folderService: FolderService;
 
   constructor() {
     this.db = DatabaseConnection.getConnection();
     this.userRepo = new UserRepository(this.db);
     this.roleRepo = new RoleRepository(this.db);
+    this.fileService = new FileService();
+    this.folderService = new FolderService();
   }
 
   // User management
@@ -92,6 +98,8 @@ export class UserService {
   }
 
   deleteUser(id: number): boolean {
+    // SQLite will automatically set user_id = NULL in related files and folders
+    // due to ON DELETE SET NULL foreign key constraints
     return this.userRepo.delete(id);
   }
 

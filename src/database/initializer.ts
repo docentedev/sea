@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { DatabaseConnection } from './connection.js';
 import { DB_SCHEMA, DEFAULT_ROLES } from './schema.js';
+import { DatabaseMigration } from './migration.js';
 import { RoleRepository } from '../repositories/RoleRepository.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { ConfigurationService } from '../services/ConfigurationService.js';
@@ -13,12 +14,14 @@ export class DatabaseInitializer {
   private roleRepo: RoleRepository;
   private userRepo: UserRepository;
   private configService: ConfigurationService;
+  private migration: DatabaseMigration;
 
   constructor() {
     this.db = DatabaseConnection.getConnection();
     this.roleRepo = new RoleRepository(this.db);
     this.userRepo = new UserRepository(this.db);
     this.configService = new ConfigurationService();
+    this.migration = new DatabaseMigration(this.db);
   }
 
   initialize(): void {
@@ -46,9 +49,12 @@ export class DatabaseInitializer {
   }
 
   private migrateTables(): void {
+    // Migrate to nullable user_id with ON DELETE SET NULL
+    this.migration.migrateToNullableUserId();
+
     // Check and add missing columns
     this.addMissingColumns();
-    
+
     // Migrate old path references from 'home' to '/'
     this.migratePaths();
   }

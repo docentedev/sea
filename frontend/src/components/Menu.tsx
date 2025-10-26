@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'wouter';
 
 interface MenuProps {
   children: React.ReactNode;
@@ -16,17 +17,22 @@ interface MenuItemProps {
   children: React.ReactNode;
   onClick?: () => void;
   href?: string;
+  icon?: React.ReactNode;
 }
 
-export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick, href }) => {
+export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick, href, icon }) => {
+  const content = (
+    <span className="flex items-center">
+      {icon && <span className="mr-2">{icon}</span>}
+      {children}
+    </span>
+  );
+
   if (href) {
     return (
-      <a
-        href={href}
-        className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-gray-100"
-      >
-        {children}
-      </a>
+      <Link href={href} className="px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-gray-100 flex w-full">
+        {content}
+      </Link>
     );
   }
 
@@ -35,7 +41,7 @@ export const MenuItem: React.FC<MenuItemProps> = ({ children, onClick, href }) =
       onClick={onClick}
       className="block w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-gray-100"
     >
-      {children}
+      {content}
     </button>
   );
 };

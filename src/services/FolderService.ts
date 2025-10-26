@@ -76,7 +76,7 @@ export class FolderService {
     }
 
     // Delete all subfolders recursively
-    const subfolders = await this.folderRepo.findByParentPath(normalizedPath, folder.user_id);
+    const subfolders = await this.folderRepo.findByParentPath(normalizedPath, folder.user_id ?? undefined);
     for (const subfolder of subfolders) {
       await this.deleteFolder(subfolder.path); // Recursive call
     }
@@ -225,7 +225,7 @@ export class FolderService {
   }
 
   // Get all files in a folder and its subfolders recursively
-  private async getAllFilesInFolderRecursive(folderPath: string, userId: number): Promise<import('../models/File').File[]> {
+  private async getAllFilesInFolderRecursive(folderPath: string, userId: number | null): Promise<import('../models/File').File[]> {
     // Find all files where virtual_folder_path matches the folder path or starts with folderPath/
     return this.fileRepo.findByVirtualFolderPathRecursive(folderPath, userId);
   }

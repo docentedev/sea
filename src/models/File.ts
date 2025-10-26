@@ -5,7 +5,7 @@ export interface File {
   path: string;
   size: number;
   mime_type: string;
-  user_id: number;
+  user_id: number | null;
   folder_path: string;
   virtual_folder_path: string;
   created_at: string;
@@ -18,7 +18,7 @@ export interface CreateFileData {
   path: string;
   size: number;
   mime_type: string;
-  user_id: number;
+  user_id: number | null;
   folder_path: string;
   virtual_folder_path?: string;
 }

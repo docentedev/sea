@@ -131,17 +131,32 @@ export class FileRepository {
     };
   }
 
-  findByVirtualFolderPathRecursive(virtualFolderPath: string, userId: number): File[] {
+  findByVirtualFolderPathRecursive(virtualFolderPath: string, userId: number | null): File[] {
     // Find all files where virtual_folder_path equals the given path or starts with path/
-    const sql = `
-      SELECT id, filename, original_filename, path, size, mime_type, user_id,
-             folder_path, virtual_folder_path, created_at, updated_at
-      FROM files
-      WHERE user_id = ? AND (virtual_folder_path = ? OR virtual_folder_path LIKE ?)
-      ORDER BY virtual_folder_path ASC, filename ASC
-    `;
+    let sql: string;
+    let params: any[];
 
-    const rows = this.db.prepare(sql).all(userId, virtualFolderPath, `${virtualFolderPath}/%`) as any[];
+    if (userId === null) {
+      sql = `
+        SELECT id, filename, original_filename, path, size, mime_type, user_id,
+               folder_path, virtual_folder_path, created_at, updated_at
+        FROM files
+        WHERE user_id IS NULL AND (virtual_folder_path = ? OR virtual_folder_path LIKE ?)
+        ORDER BY virtual_folder_path ASC, filename ASC
+      `;
+      params = [virtualFolderPath, `${virtualFolderPath}/%`];
+    } else {
+      sql = `
+        SELECT id, filename, original_filename, path, size, mime_type, user_id,
+               folder_path, virtual_folder_path, created_at, updated_at
+        FROM files
+        WHERE user_id = ? AND (virtual_folder_path = ? OR virtual_folder_path LIKE ?)
+        ORDER BY virtual_folder_path ASC, filename ASC
+      `;
+      params = [userId, virtualFolderPath, `${virtualFolderPath}/%`];
+    }
+
+    const rows = this.db.prepare(sql).all(...params) as any[];
     return rows.map(this.mapRowToFile);
   }
 
