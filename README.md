@@ -34,6 +34,86 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - ✅ **TypeScript**: Type safety en todo el stack
 - ✅ **Context API**: Manejo de estado en React sin librerías externas
 
+## 🗺️ **Roadmap - Features Pendientes**
+
+### 🔥 **PRIORIDAD ALTA - Funcionalidades Core**
+
+#### 🗂️ **Sistema de Compartición de Archivos**
+- [ ] Generar enlaces públicos temporales para compartir archivos/carpetas
+- [ ] Permisos granulares: solo lectura, escritura, o acceso completo
+- [ ] Enlaces con expiración automática y contraseñas opcionales
+- [ ] Seguimiento de accesos y posibilidad de revocar enlaces
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Alta | **Complejidad:** Media
+
+#### 🔍 **Búsqueda y Filtros Avanzados**
+- [ ] Motor de búsqueda full-text en nombres y contenido de archivos
+- [ ] Filtros por: tipo, tamaño, fecha, etiquetas, metadatos
+- [ ] Búsqueda difusa y expresiones regulares
+- [ ] Indexación automática en background
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Alta | **Complejidad:** Media
+
+#### 👁️ **Vista Previa Multimedia Avanzada**
+- [ ] Thumbnails automáticos para imágenes
+- [ ] Reproducción integrada de vídeo/audio
+- [ ] Vista previa de PDFs y documentos Office
+- [ ] Galería de imágenes con navegación
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Alta | **Complejidad:** Baja-Media
+
+### 🟡 **PRIORIDAD MEDIA - Gestión Avanzada**
+
+#### 📊 **Cuotas de Almacenamiento**
+- [ ] Límites por usuario/grupo con monitoreo en tiempo real
+- [ ] Alertas automáticas cuando se acerca al límite
+- [ ] Dashboard de estadísticas de almacenamiento
+- [ ] Políticas de limpieza automática
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Media | **Complejidad:** Baja
+
+#### 🔔 **Sistema de Notificaciones**
+- [ ] Alertas por email, webhook y push notifications
+- [ ] Eventos: uploads grandes, espacio bajo, accesos sospechosos
+- [ ] Plantillas personalizables
+- [ ] Integración con servicios externos (Slack, Discord)
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Media | **Complejidad:** Media
+
+#### 🔌 **API REST Completa**
+- [ ] Documentación OpenAPI/Swagger completa
+- [ ] Webhooks para eventos del sistema
+- [ ] Rate limiting y autenticación OAuth2
+- [ ] Logs de auditoría detallados
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Media | **Complejidad:** Media
+
+### 🟢 **PRIORIDAD BAJA - Features Premium**
+
+#### 💾 **Copias de Seguridad Automáticas**
+- [ ] Backups programados a múltiples destinos
+- [ ] Backups incrementales y encriptados
+- [ ] Restauración granular
+- [ ] Monitoreo de estado de backups
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Baja | **Complejidad:** Alta
+
+#### 🔄 **Sincronización Multi-dispositivo**
+- [ ] Clientes nativos para Windows, macOS y Linux
+- [ ] Sincronización bidireccional automática
+- [ ] Resolución de conflictos
+- [ ] Apps móviles para iOS/Android
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Baja | **Complejidad:** Muy Alta
+
+#### 📚 **Versionado de Archivos**
+- [ ] Historial completo de versiones
+- [ ] Restauración point-in-time
+- [ ] Retención configurable
+- [ ] Protección anti-ransomware
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Baja | **Complejidad:** Alta
+
+#### ⚡ **Optimización y Compresión de Archivos**
+- [ ] Compresión automática de archivos grandes
+- [ ] Optimización de imágenes (WebP, redimensionamiento)
+- [ ] Conversión de formatos automática
+- [ ] Limpieza automática de temporales
+- [ ] **Estado:** ⏳ Pendiente | **Prioridad:** Baja | **Complejidad:** Media
+
+---
+
 ## � Últimos Cambios (v4.5.0)
 
 ### ✨ Nuevas Funcionalidades
@@ -51,6 +131,19 @@ Esto significa que puedes distribuir tu aplicación como un solo archivo ejecuta
 - **Renderizado de Código**: Comentarios `#` ya no se convierten en títulos
 - **Colores de Texto**: Consistencia en colores de texto en modo oscuro
 - **Fondos de Viewers**: Eliminación de fondos blancos en visualizadores
+
+---
+
+## � **Estado del Desarrollo**
+
+Para un seguimiento detallado del progreso y planificación técnica de cada feature, consulta el archivo **[ROADMAP.md](ROADMAP.md)** que incluye:
+
+- ✅ **Tareas técnicas específicas** por feature
+- 📊 **Estimaciones de tiempo** y complejidad
+- 🎯 **Criterios de aceptación** detallados
+- 📈 **Métricas de progreso** y próximos pasos
+
+---
 
 ## �📦 Endpoints Disponibles
 
