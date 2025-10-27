@@ -17,7 +17,9 @@
     "sea:copy": "node -e \"require('fs').copyFileSync(process.execPath, process.platform === 'win32' ? 'sea-server.exe' : 'sea-server')\"",
     "sea:remove-signature": "node scripts/remove-signature.js",
     "sea:postject": "node scripts/postject.js",
-    "sea:sign": "node scripts/sign.js"
+    "sea:sign": "node scripts/sign.js",
+    "front:dev": "cd frontend && npm run dev",
+    "front:build": "cd frontend && npm run build"
   },
   "keywords": [
     "sea",

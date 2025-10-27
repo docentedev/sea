@@ -295,11 +295,18 @@ class ApiService {
     return response.data;
   }
 
-  async getLogs(page: number = 1, pageSize: number = 50): Promise<LogsResponse> {
+  async getLogs(page: number = 1, pageSize: number = 50, filters?: import("../components/LogFilters").LogFiltersState): Promise<LogsResponse> {
     const params = new URLSearchParams({
       page: page.toString(),
       pageSize: pageSize.toString(),
     });
+    if (filters) {
+      if (filters.level) params.append("level", filters.level);
+      if (filters.service) params.append("service", filters.service);
+      if (filters.userId) params.append("userId", String(filters.userId));
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+    }
     const response = await this.request<ApiResponse<LogsResponse>>(`/api/logs?${params}`);
     return response.data;
   }

@@ -6,6 +6,7 @@ export interface LogEntry {
     message: string;
     userId?: number;
     userEmail?: string;
+    username?: string;
     ip?: string;
     userAgent?: string;
     metadata?: Record<string, any>;
@@ -59,6 +60,11 @@ export class LoggingService {
             level: 'info',
             service,
             message,
+            userId: metadata?.userId,
+            userEmail: metadata?.userEmail,
+            username: metadata?.username,
+            ip: metadata?.ip,
+            userAgent: metadata?.userAgent,
             metadata,
         };
 
@@ -74,6 +80,11 @@ export class LoggingService {
             level: 'warn',
             service,
             message,
+            userId: metadata?.userId,
+            userEmail: metadata?.userEmail,
+            username: metadata?.username,
+            ip: metadata?.ip,
+            userAgent: metadata?.userAgent,
             metadata,
         };
 
@@ -86,6 +97,11 @@ export class LoggingService {
             level: 'error',
             service,
             message,
+            userId: metadata?.userId,
+            userEmail: metadata?.userEmail,
+            username: metadata?.username,
+            ip: metadata?.ip,
+            userAgent: metadata?.userAgent,
             metadata,
         };
 
@@ -98,6 +114,11 @@ export class LoggingService {
             level: 'debug',
             service,
             message,
+            userId: metadata?.userId,
+            userEmail: metadata?.userEmail,
+            username: metadata?.username,
+            ip: metadata?.ip,
+            userAgent: metadata?.userAgent,
             metadata,
         };
 
