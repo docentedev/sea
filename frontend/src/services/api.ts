@@ -1,7 +1,29 @@
-import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest, LogsResponse } from '../types/api';
+import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest, LogsResponse, Permission, PermissionsResponse } from '../types/api';
 import { ApiError } from '../types/api';
 
 class ApiService {
+  // Métodos REST genéricos para endpoints personalizados
+  async get<T = unknown>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'GET' });
+  }
+
+  async post<T = unknown>(endpoint: string, body?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'POST',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async put<T = unknown>(endpoint: string, body?: unknown): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PUT',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async delete<T = unknown>(endpoint: string): Promise<T> {
+    return this.request<T>(endpoint, { method: 'DELETE' });
+  }
   private baseURL: string;
 
   constructor() {
@@ -309,6 +331,23 @@ class ApiService {
     }
     const response = await this.request<ApiResponse<LogsResponse>>(`/api/logs?${params}`);
     return response.data;
+  }
+
+  // Métodos específicos para permisos
+  async getPermissions(): Promise<{ success: boolean; data: PermissionsResponse; timestamp: string }> {
+    return this.get<{ success: boolean; data: { permissions: Permission[] }; timestamp: string }>('/api/permissions');
+  }
+
+  async createPermission(data: { name: string; description: string }): Promise<{ success: boolean; data: { permission: Permission }; timestamp: string }> {
+    return this.post<{ success: boolean; data: { permission: Permission }; timestamp: string }>('/api/permissions', data);
+  }
+
+  async updatePermission(id: number, data: { name: string; description: string }): Promise<{ success: boolean; data: { permission: Permission }; timestamp: string }> {
+    return this.put<{ success: boolean; data: { permission: Permission }; timestamp: string }>(`/api/permissions/${id}`, data);
+  }
+
+  async deletePermission(id: number): Promise<{ success: boolean; message: string; timestamp: string }> {
+    return this.delete<{ success: boolean; message: string; timestamp: string }>(`/api/permissions/${id}`);
   }
 }
 

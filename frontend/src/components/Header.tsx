@@ -5,9 +5,10 @@ interface HeaderProps {
   title: string;
   description: string;
   onCreate?: () => void;
+  onCreateLabel?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ title, description, onCreate }) => {
+const Header: React.FC<HeaderProps> = ({ title, description, onCreate, onCreateLabel }) => {
   return (
     <div className="bg-gray-800 border-b border-gray-700">
       <div className="px-4 sm:px-6 lg:px-8">
@@ -24,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ title, description, onCreate }) => {
               className="flex items-center space-x-2"
             >
               <Plus className="w-5 h-5" />
-              <span>New Configuration</span>
+              <span>{onCreateLabel || 'Create'}</span>
             </Button>
           )}
         </div>

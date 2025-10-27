@@ -12,7 +12,8 @@ import { useState } from 'react';
 import { Menu, MenuItem } from './components/Menu';
 import { NotificationProvider, NotificationContainer, useNotifications } from './components/notifications';
 import LogsPage from './pages/LogsPage';
-import { FileText, LogOut, Settings, Users } from 'lucide-react';
+import { FileText, LogOut, Settings, Users, UserLock } from 'lucide-react';
+import { PermissionManagementPage } from './pages/PermissionManagementPage';
 
 function AppContent() {
   const { state, logout } = useAuth();
@@ -78,6 +79,7 @@ function AppContent() {
                       <MenuItem href="/users" icon={<Users className="w-4 h-4 mr-2" />}>Manage Users</MenuItem>
                       <MenuItem href="/config" icon={<Settings className="w-4 h-4 mr-2" />}>Configuration</MenuItem>
                       <MenuItem href="/logs" icon={<FileText className="w-4 h-4 mr-2" />}>View Logs</MenuItem>
+                      <MenuItem href="/permissions" icon={<UserLock className="w-4 h-4 mr-2" />}>Permisos</MenuItem>
                     </>
                   )}
                     <MenuItem onClick={logout} icon={<LogOut className="w-4 h-4 mr-2" />}>Logout</MenuItem>
@@ -96,6 +98,7 @@ function AppContent() {
         <Route path="/browser" component={FileBrowserPage} />
         <Route path="/config" component={ConfigurationPage} />
         <Route path="/logs" component={LogsPage} />
+        <Route path="/permissions" component={PermissionManagementPage} />
       </main>
 
       {/* Notification container */}

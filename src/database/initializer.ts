@@ -37,15 +37,21 @@ export class DatabaseInitializer {
   }
 
   private createTables(): void {
-    this.db.exec(DB_SCHEMA.ROLES_TABLE);
-    this.db.exec(DB_SCHEMA.USERS_TABLE);
-    this.db.exec(DB_SCHEMA.USERS_TRIGGER);
-    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TABLE);
-    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TRIGGER);
-    this.db.exec(DB_SCHEMA.FILES_TABLE);
-    this.db.exec(DB_SCHEMA.FILES_TRIGGER);
-    this.db.exec(DB_SCHEMA.FOLDERS_TABLE);
-    this.db.exec(DB_SCHEMA.FOLDERS_TRIGGER);
+    // Migración automática: crear tabla de permisos si no existe
+    try {
+      this.db.exec(DB_SCHEMA.PERMISSIONS_TABLE);
+    } catch (err) {
+      console.error('❌ Error creando tabla de permisos:', err);
+    }
+  this.db.exec(DB_SCHEMA.ROLES_TABLE);
+  this.db.exec(DB_SCHEMA.USERS_TABLE);
+  this.db.exec(DB_SCHEMA.USERS_TRIGGER);
+  this.db.exec(DB_SCHEMA.CONFIGURATIONS_TABLE);
+  this.db.exec(DB_SCHEMA.CONFIGURATIONS_TRIGGER);
+  this.db.exec(DB_SCHEMA.FILES_TABLE);
+  this.db.exec(DB_SCHEMA.FILES_TRIGGER);
+  this.db.exec(DB_SCHEMA.FOLDERS_TABLE);
+  this.db.exec(DB_SCHEMA.FOLDERS_TRIGGER);
   }
 
   private migrateTables(): void {
@@ -122,6 +128,27 @@ export class DatabaseInitializer {
   }
 
   private seedDatabase(): void {
+    // Permisos iniciales sugeridos
+    const initialPermissions = [
+      { name: 'view_logs', description: 'Ver registros de actividad' },
+      { name: 'manage_logs', description: 'Gestionar y eliminar registros' },
+      { name: 'view_config', description: 'Ver configuraciones del sistema' },
+      { name: 'manage_config', description: 'Modificar configuraciones del sistema' },
+      { name: 'view_files', description: 'Ver archivos y carpetas' },
+      { name: 'manage_files', description: 'Subir, modificar y eliminar archivos' },
+      { name: 'view_roles', description: 'Ver roles y permisos' },
+      { name: 'manage_roles', description: 'Crear, modificar y eliminar roles' },
+      { name: 'view_users', description: 'Ver usuarios' },
+      { name: 'manage_users', description: 'Crear, modificar y eliminar usuarios' },
+      { name: 'admin', description: 'Permisos administrativos completos' }
+    ];
+    const db = this.db;
+    initialPermissions.forEach(p => {
+      const exists = db.prepare('SELECT 1 FROM permissions WHERE name = ?').get(p.name);
+      if (!exists) {
+        db.prepare('INSERT INTO permissions (name, description) VALUES (?, ?)').run(p.name, p.description);
+      }
+    });
     const existingRoles = this.roleRepo.findAll();
 
     if (existingRoles.length === 0) {
