@@ -58,9 +58,10 @@ export class RoleService {
 
   // Permission management
   private validatePermissions(permissions: string[]): void {
-    const validPermissions = ['read', 'write', 'delete', 'admin', 'share'];
+    // Validar que los permisos existen en la tabla permissions
+    const stmt = this.db.prepare('SELECT name FROM permissions');
+    const validPermissions = stmt.all().map((p: any) => p.name);
     const invalidPermissions = permissions.filter(p => !validPermissions.includes(p));
-    
     if (invalidPermissions.length > 0) {
       throw new Error(`Invalid permissions: ${invalidPermissions.join(', ')}`);
     }
@@ -71,15 +72,5 @@ export class RoleService {
     if (!role) return false;
 
     return role.permissions.includes(permission);
-  }
-
-  canShare(roleId: number): boolean {
-    const role = this.roleRepo.findById(roleId);
-    return role?.can_share || false;
-  }
-
-  canAdmin(roleId: number): boolean {
-    const role = this.roleRepo.findById(roleId);
-    return role?.can_admin || false;
   }
 }

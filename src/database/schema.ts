@@ -1,4 +1,13 @@
 export const DB_SCHEMA = {
+  ROLE_PERMISSIONS_TABLE: `
+    CREATE TABLE IF NOT EXISTS role_permissions (
+      role_id INTEGER NOT NULL,
+      permission_id INTEGER NOT NULL,
+      PRIMARY KEY (role_id, permission_id),
+      FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+      FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
+    )
+  `,
   PERMISSIONS_TABLE: `
     CREATE TABLE IF NOT EXISTS permissions (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -12,9 +21,6 @@ export const DB_SCHEMA = {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT UNIQUE NOT NULL,
       display_name TEXT NOT NULL,
-      permissions TEXT NOT NULL,
-      can_share INTEGER DEFAULT 0,
-      can_admin INTEGER DEFAULT 0,
       max_storage_gb INTEGER DEFAULT 10,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
@@ -113,25 +119,16 @@ export const DEFAULT_ROLES = [
   {
     name: 'admin',
     display_name: 'Administrator',
-    permissions: JSON.stringify(['read', 'write', 'delete', 'admin', 'share']),
-    can_share: 1,
-    can_admin: 1,
     max_storage_gb: 1000
   },
   {
     name: 'user',
     display_name: 'User',
-    permissions: JSON.stringify(['read', 'write', 'share']),
-    can_share: 1,
-    can_admin: 0,
     max_storage_gb: 50
   },
   {
     name: 'guest',
     display_name: 'Guest',
-    permissions: JSON.stringify(['read']),
-    can_share: 0,
-    can_admin: 0,
     max_storage_gb: 5
   }
 ];

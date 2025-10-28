@@ -104,11 +104,16 @@ export class AuthService {
             throw new Error('User role not found');
         }
 
-        // Crear payload JWT simple
+        // Crear payload JWT con permisos y rol completo
         const payload = {
             userId: user.id,
             username: user.username,
-            role: role.name,
+            role: {
+                id: role.id,
+                name: role.name,
+                display_name: role.display_name
+            },
+            permissions: role.permissions,
             iat: Math.floor(Date.now() / 1000),
             exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 horas
         };
@@ -159,27 +164,15 @@ export class AuthService {
                 return null;
             }
 
-            // Obtener información del rol
-            const role = this.roleService.getRoleById(user.role_id);
-            if (!role) {
-                console.log('❌ Rol del usuario no encontrado');
-                return null;
-            }
-
+            // El rol y los permisos ya vienen del token
             console.log('✅ Token verificado correctamente para el usuario:', user.username);
 
             return {
                 id: user.id,
                 username: user.username,
                 email: user.email,
-                role: {
-                    id: role.id,
-                    name: role.name,
-                    display_name: role.display_name,
-                    permissions: role.permissions,
-                    can_share: role.can_share,
-                    can_admin: role.can_admin
-                }
+                role: decodedPayload.role,
+                permissions: decodedPayload.permissions
             };
         } catch (error) {
             console.error('❌ Error al verificar el token:', error);
@@ -188,10 +181,10 @@ export class AuthService {
     }
 
     isAdmin(user: AuthUser): boolean {
-        return user.role.can_admin === true;
+        return user.permissions.includes('admin');
     }
 
     hasPermission(user: AuthUser, permission: string): boolean {
-        return user.role.permissions.includes(permission);
+        return user.permissions.includes('admin') || user.permissions.includes(permission);
     }
 }

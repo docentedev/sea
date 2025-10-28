@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
 import type { CreateUserRequest, UpdateUserRequest, Role, User } from '../types/api';
 import { Button } from './Button';
@@ -24,6 +24,21 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel, roles = [], us
     password: '',
     role: undefined as number | undefined,
   });
+  const [rolePermissions, setRolePermissions] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (formData.role) {
+      apiService.getRolePermissions(Number(formData.role)).then(ids => {
+        apiService.getPermissions().then(res => {
+          const allPerms = res.data.permissions;
+          const perms = allPerms.filter(p => ids.includes(p.id)).map(p => p.name);
+          setRolePermissions(perms);
+        });
+      });
+    } else {
+      setRolePermissions([]);
+    }
+  }, [formData.role]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -313,6 +328,16 @@ const UserForm: React.FC<UserFormProps> = ({ onSuccess, onCancel, roles = [], us
                     </option>
                   ))}
                 </Select>
+                {formData.role && rolePermissions.length > 0 && (
+                  <div className="mt-3 text-xs text-gray-400">
+                    <span className="font-semibold text-gray-300">Permisos asociados:</span>
+                    <ul className="list-disc ml-5 mt-1">
+                      {rolePermissions.map(p => (
+                        <li key={p}>{p}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </FormField>
             )}
 

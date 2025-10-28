@@ -70,12 +70,11 @@ export class UserRepository {
       SELECT u.id, u.username, u.email, u.password_hash, u.role_id, 
              u.storage_quota_gb, u.storage_used_gb, u.is_active, 
              u.created_at, u.updated_at,
-             r.name as role_name, r.permissions
+             r.name as role_name
       FROM users u
       JOIN roles r ON u.role_id = r.id
       WHERE u.id = ?
     `);
-    
     const row = stmt.get(id) as any;
     return row ? this.mapRowToUserWithRole(row) : null;
   }
@@ -87,7 +86,7 @@ export class UserRepository {
       SELECT u.id, u.username, u.email, u.password_hash, u.role_id,
              u.storage_quota_gb, u.storage_used_gb, u.is_active,
              u.created_at, u.updated_at,
-             r.name as role_name, r.permissions
+             r.name as role_name
       FROM users u
       JOIN roles r ON u.role_id = r.id
     `;
@@ -238,7 +237,7 @@ export class UserRepository {
       created_at: row.created_at,
       updated_at: row.updated_at,
       role_name: row.role_name,
-      role_permissions: JSON.parse(row.permissions)
+      role_permissions: [] // Si necesitas los permisos, deberás consultarlos desde role_permissions
     };
   }
 }

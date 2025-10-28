@@ -217,6 +217,9 @@ export interface LoginResponse {
       id: number;
       name: string;
       display_name: string;
+      /**
+       * Permisos asociados al rol, obtenidos dinámicamente desde la tabla intermedia role_permissions.
+       */
       permissions: string[];
     };
     storage_quota_gb: number;
@@ -253,6 +256,9 @@ export interface UserResponse {
     id: number;
     name: string;
     display_name: string;
+    /**
+     * Permisos asociados al rol, obtenidos dinámicamente desde la tabla intermedia role_permissions.
+     */
     permissions: string[];
   };
   storage_quota_gb: number;
@@ -281,9 +287,10 @@ export interface AuthUser {
     id: number;
     name: string;
     display_name: string;
-    permissions: string[];
-    can_share: boolean;
-    can_admin: boolean;
   };
+  /**
+   * Permisos asociados al rol, obtenidos dinámicamente desde la tabla intermedia role_permissions.
+   */
+  permissions: string[];
 }
 

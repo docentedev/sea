@@ -48,10 +48,10 @@ export function HomePage() {
             <h3 className="text-xl font-semibold text-gray-100 mb-3">User Management</h3>
             <p className="text-gray-400 mb-4">Manage users and permissions</p>
             <Button
-              disabled
-              variant="secondary"
+              onClick={() => navigate('/roles')}
+              variant="primary"
             >
-              Coming Soon
+              Administrar Roles y Permisos
             </Button>
           </div>
         </div>

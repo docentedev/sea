@@ -14,6 +14,7 @@ import { NotificationProvider, NotificationContainer, useNotifications } from '.
 import LogsPage from './pages/LogsPage';
 import { FileText, LogOut, Settings, Users, UserLock } from 'lucide-react';
 import { PermissionManagementPage } from './pages/PermissionManagementPage';
+import RolesPage from './pages/RolesPage';
 
 function AppContent() {
   const { state, logout } = useAuth();
@@ -71,18 +72,19 @@ function AppContent() {
               {menuOpen && (
                 <Menu>
                   {state.user?.role && (
-                    typeof state.user.role === 'object' 
-                    ? state.user.role.name === 'admin' 
-                    : state.user.role === 'admin' || state.user.role.includes('admin')
+                    typeof state.user.role === 'object'
+                      ? state.user.role.name === 'admin'
+                      : state.user.role === 'admin' || state.user.role.includes('admin')
                   ) && (
-                    <>
-                      <MenuItem href="/users" icon={<Users className="w-4 h-4 mr-2" />}>Manage Users</MenuItem>
-                      <MenuItem href="/config" icon={<Settings className="w-4 h-4 mr-2" />}>Configuration</MenuItem>
-                      <MenuItem href="/logs" icon={<FileText className="w-4 h-4 mr-2" />}>View Logs</MenuItem>
-                      <MenuItem href="/permissions" icon={<UserLock className="w-4 h-4 mr-2" />}>Permisos</MenuItem>
-                    </>
-                  )}
-                    <MenuItem onClick={logout} icon={<LogOut className="w-4 h-4 mr-2" />}>Logout</MenuItem>
+                      <>
+                        <MenuItem href="/users" icon={<Users className="w-4 h-4 mr-2" />}>Manage Users</MenuItem>
+                        <MenuItem href="/config" icon={<Settings className="w-4 h-4 mr-2" />}>Configuration</MenuItem>
+                        <MenuItem href="/logs" icon={<FileText className="w-4 h-4 mr-2" />}>View Logs</MenuItem>
+                        <MenuItem href="/permissions" icon={<UserLock className="w-4 h-4 mr-2" />}>Permisos</MenuItem>
+                        <MenuItem href="/roles" icon={<UserLock className="w-4 h-4 mr-2" />}>Admin de Roles</MenuItem>
+                      </>
+                    )}
+                  <MenuItem onClick={logout} icon={<LogOut className="w-4 h-4 mr-2" />}>Logout</MenuItem>
                 </Menu>
               )}
             </div>
@@ -99,6 +101,7 @@ function AppContent() {
         <Route path="/config" component={ConfigurationPage} />
         <Route path="/logs" component={LogsPage} />
         <Route path="/permissions" component={PermissionManagementPage} />
+        <Route path="/roles" component={RolesPage} />
       </main>
 
       {/* Notification container */}

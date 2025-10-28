@@ -1,7 +1,16 @@
-import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest, LogsResponse, Permission, PermissionsResponse } from '../types/api';
+import type { HealthResponse, LoginRequest, LoginResponse, User, UsersResponse, CreateUserRequest, UpdateUserRequest, ApiResponse, RolesResponse, FilesResponse, FileUploadResponse, FileUploadConfig, FolderContentResponse, Folder, FolderResponse, FileInfo, Configuration, ConfigurationsResponse, ConfigurationResponse, CreateConfigurationRequest, UpdateConfigurationRequest, LogsResponse, Permission, PermissionsResponse, Role } from '../types/api';
 import { ApiError } from '../types/api';
 
 class ApiService {
+  // Permisos por rol
+  async getRolePermissions(roleId: number): Promise<number[]> {
+    const res = await this.get<{ success: boolean; data: { permissionIds: number[] }; timestamp: string }>(`/api/roles/${roleId}/permissions`);
+    return res.data.permissionIds;
+  }
+
+  async setRolePermissions(roleId: number, permissionIds: number[]): Promise<void> {
+    await this.put(`/api/roles/${roleId}/permissions`, { permissionIds });
+  }
   // Métodos REST genéricos para endpoints personalizados
   async get<T = unknown>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'GET' });
@@ -335,7 +344,7 @@ class ApiService {
 
   // Métodos específicos para permisos
   async getPermissions(): Promise<{ success: boolean; data: PermissionsResponse; timestamp: string }> {
-    return this.get<{ success: boolean; data: { permissions: Permission[] }; timestamp: string }>('/api/permissions');
+    return this.get<{ success: boolean; data: PermissionsResponse; timestamp: string }>('/api/permissions');
   }
 
   async createPermission(data: { name: string; description: string }): Promise<{ success: boolean; data: { permission: Permission }; timestamp: string }> {
@@ -348,6 +357,21 @@ class ApiService {
 
   async deletePermission(id: number): Promise<{ success: boolean; message: string; timestamp: string }> {
     return this.delete<{ success: boolean; message: string; timestamp: string }>(`/api/permissions/${id}`);
+  }
+
+  // Métodos específicos para roles
+  async createRole(data: Partial<Role>): Promise<Role> {
+    const response = await this.post<ApiResponse<Role>>('/api/roles', data);
+    return response.data;
+  }
+
+  async updateRole(id: number, data: Partial<Role>): Promise<Role> {
+    const response = await this.put<ApiResponse<Role>>(`/api/roles/${id}`, data);
+    return response.data;
+  }
+
+  async deleteRole(id: number): Promise<{ success: boolean }> {
+    return this.delete<{ success: boolean }>(`/api/roles/${id}`);
   }
 }
 

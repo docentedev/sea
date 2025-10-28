@@ -64,6 +64,7 @@ export interface Role {
   name: string;
   display_name: string;
   permissions: string[];
+  max_storage_gb: number;
 }
 
 export interface Role {
