@@ -1,4 +1,6 @@
 import { config } from '../config/index.js';
+import console from 'console';
+import fs from 'fs';
 
 export interface LogEntry {
     level: 'info' | 'warn' | 'error' | 'debug';
@@ -55,7 +57,9 @@ export class LoggingService {
     }
 
     public async info(service: string, message: string, metadata?: Record<string, any>): Promise<void> {
-        require('fs').appendFileSync('/tmp/debug.log', `DEBUG LoggingService.info called: ${service} - ${message} - metadata: ${JSON.stringify(metadata)}\n`);
+        // Write debug info to file
+        fs.appendFileSync('/tmp/debug.log', `DEBUG LoggingService.info called: ${service} - ${message} - metadata: ${JSON.stringify(metadata)}\n`);
+        
         const logEntry: LogEntry = {
             level: 'info',
             service,

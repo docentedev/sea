@@ -12,6 +12,7 @@ import { DeleteModal } from './DeleteModal';
 import { FileList } from './FileList';
 import { MoveFilesModal } from './MoveFilesModal';
 import { FilePreviewModal, canPreviewFile } from './viewers';
+import { SharedLinkModal } from './shared/SharedLinkModal';
 import { Button } from './Button';
 import { DataTable } from './data';
 import type { Column } from './data';
@@ -33,6 +34,27 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [previewFile, setPreviewFile] = useState<FileInfo | null>(null);
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [fileToShare, setFileToShare] = useState<FileInfo | null>(null);
+  const handleShareClick = (file: FileInfo) => {
+    setFileToShare(file);
+    setShowShareModal(true);
+  };
+
+  const handleCopyLinkClick = (_file: FileInfo, link: string) => {
+    navigator.clipboard.writeText(link);
+  };
+
+  const handleRevokeLinkClick = async (_file: FileInfo, token: string) => {
+    try {
+      const res = await import('../services/sharedLinks');
+      await res.revokeSharedLink(token);
+      // Recargar archivos para reflejar el cambio
+      if (typeof loadFolderContent === 'function') loadFolderContent(currentPath);
+    } catch {
+      // Opcional: mostrar error
+    }
+  };
 
   const {
     currentPath,
@@ -203,10 +225,11 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
   // Convert folders and files to combined items
   const getCombinedItems = (): FileBrowserItem[] => {
+    const getFileName = (file: { original_filename?: string; name?: string }) => file.original_filename || file.name || '';
     if (isAdmin && allFiles) {
       return allFiles.files.map(file => ({
         id: file.id,
-        name: file.original_filename,
+        name: getFileName(file),
         type: 'file' as const,
         size: file.size,
         modifiedAt: file.created_at,
@@ -223,7 +246,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
 
       const fileItems: FileBrowserItem[] = folderContent.files.map(file => ({
         id: file.id,
-        name: file.original_filename,
+        name: getFileName(file),
         type: 'file' as const,
         size: file.size,
         modifiedAt: file.created_at,
@@ -311,16 +334,44 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       render: (_, item) => (
         <div className="flex items-center space-x-2">
           {item.type === 'file' && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleDownloadClick(item.originalItem as FileInfo);
-              }}
-            >
-              <Download className="h-4 w-4" />
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDownloadClick(item.originalItem as FileInfo);
+                }}
+              >
+                <Download className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleShareClick(item.originalItem as FileInfo);
+                }}
+              >
+                <span role="img" aria-label="Compartir" className="h-4 w-4">🔗</span>
+              </Button>
+              {(item.originalItem as FileInfo).sharedLink && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const sharedLink = (item.originalItem as FileInfo).sharedLink;
+                    if (sharedLink) {
+                      window.open(`/public/shared/${sharedLink.token}`, '_blank');
+                    }
+                  }}
+                  title="Abrir enlace público"
+                >
+                  <span role="img" aria-label="Abrir enlace público" className="h-4 w-4">🌐</span>
+                </Button>
+              )}
+            </>
           )}
           <Button
             variant="outline"
@@ -496,6 +547,9 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 onItemSelect={handleItemSelect}
                 onDeleteClick={handleDeleteClick}
                 onDownloadClick={handleDownloadClick}
+                onShareClick={handleShareClick}
+                onCopyLinkClick={handleCopyLinkClick}
+                onRevokeLinkClick={handleRevokeLinkClick}
                 formatFileSize={formatFileSize}
               />
             )
@@ -536,6 +590,7 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
                 onItemSelect={handleItemSelect}
                 onDeleteClick={handleDeleteClick}
                 onDownloadClick={handleDownloadClick}
+                onShareClick={handleShareClick}
                 formatFileSize={formatFileSize}
               />
             )
@@ -550,6 +605,19 @@ export const FileBrowser: React.FC<FileBrowserProps> = ({
       </div>
 
       {/* Modals */}
+      {showShareModal && fileToShare && (
+        <SharedLinkModal
+          fileId={fileToShare.id}
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          onCreated={() => {
+            setShowShareModal(false);
+            setFileToShare(null);
+            // Refrescar el listado para mostrar el nuevo link shared
+            loadFolderContent(currentPath);
+          }}
+        />
+      )}
       <CreateFolderModal
         isOpen={showCreateFolderModal}
         folderName={newFolderName}

@@ -176,7 +176,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const isAdmin = (): boolean => {
-    return !!(state.user?.role && typeof state.user.role === 'object' && 'can_admin' in state.user.role && state.user.role.can_admin === true);
+    return !!(state.user?.role && typeof state.user.role === 'object' && state.user.role.permissions?.includes('admin'));
   };
 
   const value: AuthContextType = {

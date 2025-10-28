@@ -85,26 +85,24 @@ export const PermissionManagementPage: React.FC = () => {
                 keyField="id"
             />
             <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Editar Permiso' : 'Nuevo Permiso'}>
-                <div className="p-6">
-                    <div className="space-y-4">
-                        <FormField label="Nombre" required>
-                            <Input
-                                placeholder="Nombre"
-                                value={form.name}
-                                onChange={e => setForm(f => ({ ...f, name: (e.target as HTMLInputElement).value }))}
-                            />
-                        </FormField>
-                        <FormField label="Descripción">
-                            <Input
-                                placeholder="Descripción"
-                                value={form.description}
-                                onChange={e => setForm(f => ({ ...f, description: (e.target as HTMLInputElement).value }))}
-                            />
-                        </FormField>
-                    </div>
-                    <div className="flex justify-end space-x-3 mt-6">
-                        <Button onClick={handleSave}>{editingId ? 'Guardar Cambios' : 'Crear Permiso'}</Button>
-                    </div>
+                <div className="space-y-4">
+                    <FormField label="Nombre" required>
+                        <Input
+                            placeholder="Nombre"
+                            value={form.name}
+                            onChange={e => setForm(f => ({ ...f, name: (e.target as HTMLInputElement).value }))}
+                        />
+                    </FormField>
+                    <FormField label="Descripción">
+                        <Input
+                            placeholder="Descripción"
+                            value={form.description}
+                            onChange={e => setForm(f => ({ ...f, description: (e.target as HTMLInputElement).value }))}
+                        />
+                    </FormField>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                    <Button onClick={handleSave}>{editingId ? 'Guardar Cambios' : 'Crear Permiso'}</Button>
                 </div>
             </Modal>
         </Container>

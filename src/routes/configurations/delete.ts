@@ -1,10 +1,14 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { ConfigurationService } from '../../services/ConfigurationService.js';
 
-export const deleteConfiguration = async (request: FastifyRequest, reply: FastifyReply) => {
+interface DeleteConfigurationParams {
+  id: string;
+}
+
+export const deleteConfiguration = async (request: FastifyRequest<{ Params: DeleteConfigurationParams }>, reply: FastifyReply) => {
   const configService = new ConfigurationService();
   try {
-    const { id } = request.params as any;
+    const { id } = request.params;
     const configId = parseInt(id);
 
     const deleted = configService.deleteConfiguration(configId);

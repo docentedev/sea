@@ -216,41 +216,39 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                 title="Nueva Configuración"
                 size="md"
             >
-                <div className="p-6">
-                    <div className="space-y-4">
-                        <FormField label="Nombre" required>
-                            <Input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="ej: upload_path"
-                            />
-                        </FormField>
-                        <FormField label="Valor" required>
-                            <textarea
-                                value={formData.value}
-                                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                                rows={3}
-                                className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
-                                placeholder="ej: /uploads"
-                            />
-                        </FormField>
-                    </div>
-                    <div className="flex justify-end space-x-3 mt-6">
-                        <Button
-                            onClick={closeModals}
-                            variant="secondary"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleCreate}
-                            disabled={loading || !formData.name.trim() || !formData.value.trim()}
-                            variant="primary"
-                        >
-                            {loading ? 'Creando...' : 'Crear'}
-                        </Button>
-                    </div>
+                <div className="space-y-4">
+                    <FormField label="Nombre" required>
+                        <Input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="ej: upload_path"
+                        />
+                    </FormField>
+                    <FormField label="Valor" required>
+                        <textarea
+                            value={formData.value}
+                            onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                            rows={3}
+                            className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
+                            placeholder="ej: /uploads"
+                        />
+                    </FormField>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                    <Button
+                        onClick={closeModals}
+                        variant="secondary"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleCreate}
+                        disabled={loading || !formData.name.trim() || !formData.value.trim()}
+                        variant="primary"
+                    >
+                        {loading ? 'Creando...' : 'Crear'}
+                    </Button>
                 </div>
             </Modal>
 
@@ -261,39 +259,37 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                 title="Editar Configuración"
                 size="md"
             >
-                <div className="p-6">
-                    <div className="space-y-4">
-                        <FormField label="Nombre" required>
-                            <Input
-                                type="text"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                        </FormField>
-                        <FormField label="Valor" required>
-                            <textarea
-                                value={formData.value}
-                                onChange={(e) => setFormData({ ...formData, value: e.target.value })}
-                                rows={3}
-                                className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
-                            />
-                        </FormField>
-                    </div>
-                    <div className="flex justify-end space-x-3 mt-6">
-                        <Button
-                            onClick={closeModals}
-                            variant="secondary"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleEdit}
-                            disabled={loading || !formData.name.trim() || !formData.value.trim()}
-                            variant="primary"
-                        >
-                            {loading ? 'Guardando...' : 'Guardar'}
-                        </Button>
-                    </div>
+                <div className="space-y-4">
+                    <FormField label="Nombre" required>
+                        <Input
+                            type="text"
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        />
+                    </FormField>
+                    <FormField label="Valor" required>
+                        <textarea
+                            value={formData.value}
+                            onChange={(e) => setFormData({ ...formData, value: e.target.value })}
+                            rows={3}
+                            className="mt-1 block w-full border border-gray-600 rounded-lg shadow-sm py-3 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-gray-800 text-gray-100 placeholder-gray-400 transition-colors duration-200"
+                        />
+                    </FormField>
+                </div>
+                <div className="flex justify-end space-x-3 mt-6">
+                    <Button
+                        onClick={closeModals}
+                        variant="secondary"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleEdit}
+                        disabled={loading || !formData.name.trim() || !formData.value.trim()}
+                        variant="primary"
+                    >
+                        {loading ? 'Guardando...' : 'Guardar'}
+                    </Button>
                 </div>
             </Modal>
 
@@ -304,26 +300,24 @@ export const ConfigurationPanel: React.FC<ConfigurationPanelProps> = ({
                 title="Eliminar Configuración"
                 size="md"
             >
-                <div className="p-6">
-                    <p className="text-sm text-gray-400 mb-4">
-                        ¿Estás seguro de que quieres eliminar la configuración <strong>{selectedConfig?.name}</strong>?
-                        Esta acción no se puede deshacer.
-                    </p>
-                    <div className="flex justify-end space-x-3">
-                        <Button
-                            onClick={closeModals}
-                            variant="secondary"
-                        >
-                            Cancelar
-                        </Button>
-                        <Button
-                            onClick={handleDelete}
-                            disabled={loading}
-                            variant="danger"
-                        >
-                            {loading ? 'Eliminando...' : 'Eliminar'}
-                        </Button>
-                    </div>
+                <p className="text-sm text-gray-400 mb-4">
+                    ¿Estás seguro de que quieres eliminar la configuración <strong>{selectedConfig?.name}</strong>?
+                    Esta acción no se puede deshacer.
+                </p>
+                <div className="flex justify-end space-x-3">
+                    <Button
+                        onClick={closeModals}
+                        variant="secondary"
+                    >
+                        Cancelar
+                    </Button>
+                    <Button
+                        onClick={handleDelete}
+                        disabled={loading}
+                        variant="danger"
+                    >
+                        {loading ? 'Eliminando...' : 'Eliminar'}
+                    </Button>
                 </div>
             </Modal>
         </div>

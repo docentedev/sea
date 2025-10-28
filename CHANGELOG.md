@@ -5,6 +5,39 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.6.0] - 2025-10-28
+
+### Security
+- **File Access Authentication**: Fixed critical security vulnerability where file download endpoints were accessible without authentication
+- **Cookie-Based Authentication**: Added secure cookie support for video streaming authentication (replacing insecure query parameters)
+- **Authorization Middleware**: Enhanced authentication middleware to support multiple authentication methods (headers, cookies, query params)
+
+### Added
+- **Secure Video Streaming**: Implemented SecureVideoPlayer component that uses fetch with Authorization headers for secure video loading
+- **Cookie Authentication Support**: Backend now accepts authentication tokens via HTTP cookies for video streaming
+- **Enhanced Video Player**: New video player with improved sizing constraints and visual appearance
+
+### Changed
+- **Video Player Sizing**: Updated video players to use maximum 80% of viewport width/height with object-contain scaling
+- **Public Shared Files Page**: Improved layout and media display with better responsive design
+- **Authentication Flow**: Removed insecure token exposure in URLs, now uses secure headers and cookies
+
+### Fixed
+- **File Download Security**: Resolved unauthorized access to file download endpoints
+- **Video Streaming Authentication**: Fixed authentication bypass in video streaming functionality
+- **Media Display Limits**: Corrected video and image sizing to prevent overflow and maintain aspect ratios
+
+### UI/UX Improvements
+- **Video Player Enhancement**: Videos now display with proper aspect ratio preservation and size constraints
+- **Shared Files Interface**: Better visual presentation of shared files with improved media rendering
+- **Responsive Media Display**: Media content adapts to screen size with maximum 80% viewport utilization
+
+### Technical Details
+- **SecureVideoPlayer Component**: New component that fetches video content with proper authentication headers
+- **Cookie Authentication**: Added support for `auth_token` cookie in authentication middleware
+- **Object-Contain Scaling**: Implemented CSS `object-fit: contain` for proper media scaling
+- **Security Headers**: Enhanced security by removing token exposure in query parameters
+
 ## [4.5.0] - 2025-10-25
 
 ### Added

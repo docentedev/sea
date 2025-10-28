@@ -3,6 +3,7 @@ import { DatabaseConnection } from '../database/connection.js';
 import { FileRepository } from '../repositories/FileRepository.js';
 import { ConfigurationService } from './ConfigurationService.js';
 import { VirtualFolderService } from './VirtualFolderService.js';
+import { SharedLinkService } from './SharedLinkService.js';
 import { FolderRepository } from '../repositories/FolderRepository.js';
 import { File, CreateFileData, UpdateFileData, FileListResult, FileUploadResult } from '../models/File.js';
 import { Configuration } from '../models/Configuration.js';
@@ -15,6 +16,7 @@ export class FileService {
   private fileRepo: FileRepository;
   private configService: ConfigurationService;
   private virtualFolderService: VirtualFolderService;
+  private sharedLinkService: SharedLinkService;
 
   constructor() {
     this.db = DatabaseConnection.getConnection();
@@ -25,15 +27,28 @@ export class FileService {
       new FileRepository(this.db),
       this.db
     );
+    this.sharedLinkService = new SharedLinkService(this.db);
   }
 
   // File listing
   getAllFiles(page: number = 1, limit: number = 20): FileListResult {
-    return this.fileRepo.findAll(page, limit);
+    const result = this.fileRepo.findAll(page, limit);
+    // Agregar sharedLink activo a cada archivo
+    result.files = result.files.map(file => {
+      const sharedLink = this.sharedLinkService.getActiveLinkForFile(file.id);
+      return { ...file, sharedLink };
+    });
+    return result;
   }
 
   getFilesByUser(userId: number, page: number = 1, limit: number = 20): FileListResult {
-    return this.fileRepo.findByUserId(userId, page, limit);
+    const result = this.fileRepo.findByUserId(userId, page, limit);
+    // Agregar sharedLink activo a cada archivo
+    result.files = result.files.map(file => {
+      const sharedLink = this.sharedLinkService.getActiveLinkForFile(file.id);
+      return { ...file, sharedLink };
+    });
+    return result;
   }
 
   getFilesByFolder(folderPath: string, page: number = 1, limit: number = 20): FileListResult {
@@ -186,6 +201,9 @@ export class FileService {
     if (!file) return false;
 
     try {
+      // Delete associated shared links first
+      this.sharedLinkService.deleteLinksForFile(fileId);
+
       // Delete from filesystem
       if (fs.existsSync(file.path)) {
         fs.unlinkSync(file.path);

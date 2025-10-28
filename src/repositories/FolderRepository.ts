@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import { Folder, CreateFolderData, UpdateFolderData, FolderContent } from '../models/Folder';
 import { File } from '../models/File';
+import { SharedLinkService } from '../services/SharedLinkService';
 
 export class FolderRepository {
   constructor(private db: DatabaseSync) {}
@@ -152,19 +153,27 @@ export class FolderRepository {
 
     const rows = this.db.prepare(sql).all(...params) as any[];
 
-    return rows.map(row => ({
-      id: row.id,
-      filename: row.filename,
-      original_filename: row.original_filename,
-      path: row.path,
-      size: row.size,
-      mime_type: row.mime_type,
-      user_id: row.user_id,
-      folder_path: row.folder_path,
-      virtual_folder_path: row.virtual_folder_path,
-      created_at: row.created_at,
-      updated_at: row.updated_at
-    }));
+    // Agregar sharedLink activo a cada archivo
+    const { SharedLinkService } = require('../services/SharedLinkService.js');
+    const sharedLinkService = new SharedLinkService(this.db);
+
+    return rows.map(row => {
+      const file = {
+        id: row.id,
+        filename: row.filename,
+        original_filename: row.original_filename,
+        path: row.path,
+        size: row.size,
+        mime_type: row.mime_type,
+        user_id: row.user_id,
+        folder_path: row.folder_path,
+        virtual_folder_path: row.virtual_folder_path,
+        created_at: row.created_at,
+        updated_at: row.updated_at
+      };
+      const sharedLink = sharedLinkService.getActiveLinkForFile(file.id);
+      return { ...file, sharedLink };
+    });
   }
 
   async update(id: number, data: UpdateFolderData): Promise<Folder | null> {

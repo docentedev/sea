@@ -36,21 +36,27 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
 
         // For video files, use streaming URL instead of downloading blob to avoid loading large files
         const isVideoFile = file.mime_type?.startsWith('video/') ||
-                           /\.(mp4|avi|mov|mkv|webm|flv|wmv|mpg|mpeg|3gp|m4v)$/i.test(file.original_filename);
+          /\.(mp4|avi|mov|mkv|webm|flv|wmv|mpg|mpeg|3gp|m4v)$/i.test(file.original_filename);
 
         if (isVideoFile) {
-          console.log('🎬 FilePreviewModal: Detected video file, using streaming URL', {
-            fileId: file.id,
-            mimeType: file.mime_type,
-            filename: file.original_filename,
-            detectedByMimeType: file.mime_type?.startsWith('video/'),
-            detectedByExtension: /\.(mp4|avi|mov|mkv|webm|flv|wmv|mpg|mpeg|3gp|m4v)$/i.test(file.original_filename)
-          });
-          const token = localStorage.getItem('auth_token');
-          const streamUrl = `${apiService.getBaseUrl()}/api/files/${file.id}/download?action=stream&token=${token}`;
-          console.log('🎬 FilePreviewModal: Constructed streaming URL:', streamUrl);
-          if (isMounted) {
-            setFileUrl(streamUrl);
+          // For large video files, use streaming URL to avoid loading into memory
+          // For smaller files, download as blob for better compatibility
+          // EXCEPTION: MOV files always use streaming due to codec compatibility issues
+          const maxBlobSize = 50 * 1024 * 1024; // 50MB
+          const isLargeFile = file.size >= maxBlobSize;
+          const isMovFile = file.original_filename.toLowerCase();
+          const shouldUseStreaming = isLargeFile || isMovFile;
+          if (shouldUseStreaming) {
+            console.log('🎬 FilePreviewModal: Using streaming URL for video file');
+          } else {
+            // For smaller non-MOV files, download as blob using authenticated request
+            console.log('🎬 FilePreviewModal: Downloading small video file as blob');
+            const blob = await apiService.downloadFile(file.id, 'preview');
+            const url = URL.createObjectURL(blob);
+            console.log('🎬 FilePreviewModal: Created blob URL for small video:', url);
+            if (isMounted) {
+              setFileUrl(url);
+            }
           }
         } else {
           // For other files, download as blob
@@ -175,9 +181,7 @@ export const FilePreviewModal: React.FC<FilePreviewModalProps> = ({
       size="xl"
       className="max-h-[90vh]"
     >
-      <div className="p-6">
-        <ViewerComponent file={file} fileUrl={fileUrl!} onClose={onClose} />
-      </div>
+      <ViewerComponent file={file} fileUrl={fileUrl!} onClose={onClose} />
     </Modal>
   );
 };

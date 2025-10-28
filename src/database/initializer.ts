@@ -1,7 +1,6 @@
 import { DatabaseSync } from 'node:sqlite';
 import { DatabaseConnection } from './connection.js';
 import { DB_SCHEMA, DEFAULT_ROLES } from './schema.js';
-import { DatabaseMigration } from './migration.js';
 import { RoleRepository } from '../repositories/RoleRepository.js';
 import { UserRepository } from '../repositories/UserRepository.js';
 import { ConfigurationService } from '../services/ConfigurationService.js';
@@ -34,17 +33,18 @@ export class DatabaseInitializer {
   }
 
   private createTables(): void {
-    this.db.exec(DB_SCHEMA.ROLE_PERMISSIONS_TABLE);
-    this.db.exec(DB_SCHEMA.PERMISSIONS_TABLE);
-    this.db.exec(DB_SCHEMA.ROLES_TABLE);
-    this.db.exec(DB_SCHEMA.USERS_TABLE);
-    this.db.exec(DB_SCHEMA.USERS_TRIGGER);
-    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TABLE);
-    this.db.exec(DB_SCHEMA.CONFIGURATIONS_TRIGGER);
-    this.db.exec(DB_SCHEMA.FILES_TABLE);
-    this.db.exec(DB_SCHEMA.FILES_TRIGGER);
-    this.db.exec(DB_SCHEMA.FOLDERS_TABLE);
-    this.db.exec(DB_SCHEMA.FOLDERS_TRIGGER);
+  this.db.exec(DB_SCHEMA.ROLE_PERMISSIONS_TABLE);
+  this.db.exec(DB_SCHEMA.PERMISSIONS_TABLE);
+  this.db.exec(DB_SCHEMA.ROLES_TABLE);
+  this.db.exec(DB_SCHEMA.USERS_TABLE);
+  this.db.exec(DB_SCHEMA.USERS_TRIGGER);
+  this.db.exec(DB_SCHEMA.CONFIGURATIONS_TABLE);
+  this.db.exec(DB_SCHEMA.CONFIGURATIONS_TRIGGER);
+  this.db.exec(DB_SCHEMA.FILES_TABLE);
+  this.db.exec(DB_SCHEMA.FILES_TRIGGER);
+  this.db.exec(DB_SCHEMA.FOLDERS_TABLE);
+  this.db.exec(DB_SCHEMA.FOLDERS_TRIGGER);
+  this.db.exec(DB_SCHEMA.SHARED_LINKS_TABLE);
   }
 
   // Eliminado: migraciones y transformaciones. Solo estructura y datos iniciales.
@@ -79,7 +79,7 @@ export class DatabaseInitializer {
       for (const roleData of DEFAULT_ROLES) {
         let permissions: string[] = [];
         if (roleData.name === 'admin') {
-          const allPermissions = this.db.prepare('SELECT name FROM permissions').all().map((p: any) => p.name);
+          const allPermissions = this.db.prepare('SELECT name FROM permissions').all().map((p: { name: string }) => p.name);
           permissions = allPermissions;
         }
         this.roleRepo.create({

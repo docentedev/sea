@@ -1,10 +1,12 @@
 import { HealthResponse, InfoResponse, TimeResponse } from '../types';
 import { appConfig, isSEA, config } from '../config';
 import { DatabaseService } from './DatabaseService';
+import process from 'process';
+// Removed invalid import of CpuUsage
 
 export class SystemService {
   private startTime: number;
-  private cpuUsageBase: NodeJS.CpuUsage;
+  private cpuUsageBase: ReturnType<typeof process.cpuUsage>;
   private database: DatabaseService;
 
   constructor() {

@@ -79,87 +79,85 @@ export const MoveFilesModal: React.FC<MoveFilesModalProps> = ({
       title={`Move ${fileIds.length} file${fileIds.length !== 1 ? 's' : ''}`}
       size="md"
     >
-      <div className="p-6">
-        {moveSuccess && (
-          <div className="mb-4 p-3 bg-green-900/20 border border-green-700 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <Check className="h-5 w-5 text-green-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-green-300">{moveSuccess}</p>
-              </div>
+      {moveSuccess && (
+        <div className="mb-4 p-3 bg-green-900/20 border border-green-700 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <Check className="h-5 w-5 text-green-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-green-300">{moveSuccess}</p>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {moveError && (
-          <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-md">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <X className="h-5 w-5 text-red-400" />
-              </div>
-              <div className="ml-3">
-                <p className="text-sm font-medium text-red-300">{moveError}</p>
-              </div>
+      {moveError && (
+        <div className="mb-4 p-3 bg-red-900/20 border border-red-700 rounded-md">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <X className="h-5 w-5 text-red-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm font-medium text-red-300">{moveError}</p>
             </div>
           </div>
+        </div>
+      )}
+
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-300 mb-2">
+          Select destination folder:
+        </label>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <span className="ml-2 text-gray-300">Loading folders...</span>
+          </div>
+        ) : folders.length === 0 ? (
+          <div className="text-center py-4 text-gray-400">
+            No folders available to move to.
+            <br />
+            <small className="text-xs">Create some folders first to see them here.</small>
+          </div>
+        ) : (
+          <FolderTreeSelector
+            folders={folders}
+            selectedPath={selectedPath}
+            onSelectPath={setSelectedPath}
+            disabled={moving}
+            currentPath={currentPath}
+          />
         )}
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Select destination folder:
-          </label>
+        <p className="mt-2 text-sm text-gray-300">
+          Selected destination: <span className="font-medium">{selectedPath === '/' ? 'Root Directory' : selectedPath}</span>
+        </p>
+      </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-4">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <span className="ml-2 text-gray-300">Loading folders...</span>
-            </div>
-          ) : folders.length === 0 ? (
-            <div className="text-center py-4 text-gray-400">
-              No folders available to move to.
-              <br />
-              <small className="text-xs">Create some folders first to see them here.</small>
+      <div className="flex justify-end space-x-3">
+        <Button
+          onClick={onCancel}
+          disabled={moving}
+          variant="secondary"
+        >
+          Cancel
+        </Button>
+        <Button
+          onClick={handleMove}
+          disabled={moving || fileIds.length === 0}
+          variant="primary"
+        >
+          {moving ? (
+            <div className="flex items-center">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Moving...
             </div>
           ) : (
-            <FolderTreeSelector
-              folders={folders}
-              selectedPath={selectedPath}
-              onSelectPath={setSelectedPath}
-              disabled={moving}
-              currentPath={currentPath}
-            />
+            `Move ${fileIds.length} file${fileIds.length !== 1 ? 's' : ''}`
           )}
-
-          <p className="mt-2 text-sm text-gray-300">
-            Selected destination: <span className="font-medium">{selectedPath === '/' ? 'Root Directory' : selectedPath}</span>
-          </p>
-        </div>
-
-        <div className="flex justify-end space-x-3">
-          <Button
-            onClick={onCancel}
-            disabled={moving}
-            variant="secondary"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleMove}
-            disabled={moving || fileIds.length === 0}
-            variant="primary"
-          >
-            {moving ? (
-              <div className="flex items-center">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Moving...
-              </div>
-            ) : (
-              `Move ${fileIds.length} file${fileIds.length !== 1 ? 's' : ''}`
-            )}
-          </Button>
-        </div>
+        </Button>
       </div>
     </Modal>
   );

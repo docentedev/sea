@@ -129,6 +129,13 @@ export interface FileInfo {
   created_at: string;
   updated_at: string;
   user_id: number;
+  sharedLink?: {
+    token: string;
+    expires_at?: string;
+    max_access_count?: number;
+    access_count: number;
+    revoked: boolean;
+  };
 }
 
 export interface FilesResponse {

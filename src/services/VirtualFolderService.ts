@@ -1,14 +1,19 @@
 import { FolderRepository } from '../repositories/FolderRepository';
 import { FileRepository } from '../repositories/FileRepository';
+import { SharedLinkService } from './SharedLinkService';
 import { Folder, CreateFolderData, UpdateFolderData, FolderContent } from '../models/Folder';
 import { DatabaseSync } from 'node:sqlite';
 
 export class VirtualFolderService {
+  private sharedLinkService: SharedLinkService;
+
   constructor(
     private folderRepo: FolderRepository,
     private fileRepo: FileRepository,
     private db: DatabaseSync
-  ) {}
+  ) {
+    this.sharedLinkService = new SharedLinkService(db);
+  }
 
   async createFolder(data: CreateFolderData): Promise<Folder> {
     // Validate folder name
@@ -67,7 +72,15 @@ export class VirtualFolderService {
       }
     }
 
-    return await this.folderRepo.getFolderContents(normalizedFolderPath, userId);
+    const contents = await this.folderRepo.getFolderContents(normalizedFolderPath, userId);
+
+    // Agregar sharedLink activo a cada archivo
+    contents.files = contents.files.map(file => {
+      const sharedLink = this.sharedLinkService.getActiveLinkForFile(file.id);
+      return { ...file, sharedLink };
+    });
+
+    return contents;
   }
 
   async updateFolder(id: number, data: UpdateFolderData): Promise<Folder | null> {

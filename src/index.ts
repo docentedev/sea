@@ -17,6 +17,7 @@ import virtualFolderRoutes from './routes/virtualFolders/';
 import configurationRoutes from './routes/configurations/';
 import logsRoutes from './routes/logs/';
 import permissionRoutes from './routes/permissions/';
+import sharedRoutes from './routes/shared/';
 
 // Services
 import { LoggingServer } from './log-server/LoggingServer.js';
@@ -57,6 +58,7 @@ async function buildServer() {
   await fastify.register(configurationRoutes);
   await fastify.register(logsRoutes);
   await fastify.register(permissionRoutes);
+  await fastify.register(sharedRoutes);
 
   // Hook para manejo de errores
   fastify.setErrorHandler(async (error, request, reply) => {

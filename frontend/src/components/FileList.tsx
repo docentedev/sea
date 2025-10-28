@@ -11,6 +11,9 @@ interface FileListProps {
     onItemSelect: (itemId: number) => void;
     onDeleteClick: (type: 'file' | 'folder', id: number, name: string, path?: string) => void;
     onDownloadClick: (file: FileInfo) => void;
+    onShareClick?: (file: FileInfo) => void;
+    onCopyLinkClick?: (file: FileInfo, link: string) => void;
+    onRevokeLinkClick?: (file: FileInfo, link: string) => void;
     formatFileSize: (bytes: number) => string;
 }
 
@@ -24,6 +27,9 @@ export const FileList: React.FC<FileListProps> = ({
     onItemSelect,
     onDeleteClick,
     formatFileSize,
+    onShareClick,
+    onCopyLinkClick,
+    onRevokeLinkClick,
 }) => {
     const formatDate = (dateString: string) => {
         return new Date(dateString).toLocaleDateString();
@@ -101,8 +107,7 @@ export const FileList: React.FC<FileListProps> = ({
             {files.map((file) => (
                 <div
                     key={`file-${file.id}`}
-                    className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer ${selectedItems.has(file.id) ? 'ring-2 ring-blue-400 bg-blue-900' : ''
-                        }`}
+                    className={`bg-gray-800 rounded-lg shadow-sm border border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer ${selectedItems.has(file.id) ? 'ring-2 ring-blue-400 bg-blue-900' : ''}`}
                     onClick={() => onFileClick(file)}
                 >
                     {allowSelection && (
@@ -127,15 +132,58 @@ export const FileList: React.FC<FileListProps> = ({
                             {formatDate(file.created_at)}
                         </div>
                         <div className="mt-2">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onDeleteClick('file', file.id, file.original_filename);
-                                }}
-                                className="text-red-400 hover:text-red-300 text-xs"
-                            >
-                                Delete
-                            </button>
+                                                        {file.sharedLink && !file.sharedLink.revoked ? (
+                                                            <div className="flex flex-col items-center gap-1 mb-2">
+                                                                <span className="inline-flex items-center text-green-400 text-xs">
+                                                                    <span role="img" aria-label="Compartido" className="mr-1">🔗</span>
+                                                                    <a
+                                                                        href={`/public/shared/${file.sharedLink.token}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="underline text-green-400"
+                                                                    >
+                                                                        Compartido
+                                                                    </a>
+                                                                </span>
+                                                                <button
+                                                                    className="text-blue-400 hover:text-blue-300 text-xs"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (onCopyLinkClick && file.sharedLink) onCopyLinkClick(file, `${window.location.origin}/public/shared/${file.sharedLink.token}`);
+                                                                    }}
+                                                                >
+                                                                    Copiar link
+                                                                </button>
+                                                                <button
+                                                                    className="text-red-400 hover:text-red-300 text-xs"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        if (onRevokeLinkClick && file.sharedLink) onRevokeLinkClick(file, file.sharedLink.token);
+                                                                    }}
+                                                                >
+                                                                    Revocar
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    if (onShareClick) onShareClick(file);
+                                                                }}
+                                                                className="text-blue-400 hover:text-blue-300 text-xs mr-2"
+                                                            >
+                                                                Compartir
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                onDeleteClick('file', file.id, file.original_filename);
+                                                            }}
+                                                            className="text-red-400 hover:text-red-300 text-xs"
+                                                        >
+                                                            Delete
+                                                        </button>
                         </div>
                     </div>
                 </div>

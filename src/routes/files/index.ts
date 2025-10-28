@@ -46,6 +46,11 @@ const fileRoutes: FastifyPluginAsync = async (fastify) => {
     preHandler: requireAuth
   }, downloadFile);
 
+  // Stream archivo con token (para videos)
+  //fastify.get('/api/files/:id/stream/:token', {
+    // No preHandler - authentication handled in the route
+  //}, streamFile);
+
   // Subir archivo(s)
   fastify.post('/api/files/upload', {
     preHandler: requireAuth

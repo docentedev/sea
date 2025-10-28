@@ -35,7 +35,7 @@ export const CreateFolderModal: React.FC<CreateFolderModalProps> = ({
       title="Create New Folder"
       size="sm"
     >
-      <form onSubmit={handleSubmit} className="p-6">
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <FormField label="Folder Name" required>
             <Input

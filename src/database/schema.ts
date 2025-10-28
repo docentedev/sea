@@ -1,4 +1,21 @@
-export const DB_SCHEMA = {
+  export const DB_SCHEMA = {
+    SHARED_LINKS_TABLE: `
+      CREATE TABLE IF NOT EXISTS shared_links (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        file_id INTEGER NOT NULL,
+        user_id INTEGER,
+        token TEXT UNIQUE NOT NULL,
+        password_hash TEXT,
+        expires_at DATETIME,
+        max_access_count INTEGER,
+        access_count INTEGER DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_accessed DATETIME,
+        revoked INTEGER DEFAULT 0,
+        FOREIGN KEY (file_id) REFERENCES files(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `,
   ROLE_PERMISSIONS_TABLE: `
     CREATE TABLE IF NOT EXISTS role_permissions (
       role_id INTEGER NOT NULL,

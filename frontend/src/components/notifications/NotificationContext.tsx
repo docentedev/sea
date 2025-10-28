@@ -2,7 +2,7 @@ import React, { createContext, useReducer } from 'react';
 import type { ReactNode } from 'react';
 import type { Notification, NotificationType } from './NotificationItem';
 
-interface NotificationContextType {
+export interface NotificationContextType {
   notifications: Notification[];
   addNotification: (type: NotificationType, title: string, message?: string, duration?: number, persistent?: boolean) => void;
   removeNotification: (id: string) => void;

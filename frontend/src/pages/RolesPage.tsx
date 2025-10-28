@@ -11,6 +11,7 @@ const RolesPage: React.FC = () => {
   const { addNotification } = useNotifications();
   const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
+  // @ts-expect-error - loading is used via setLoading but not read directly
   const [loading, setLoading] = useState(false);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [form, setForm] = useState({ name: '', display_name: '', max_storage_gb: 10, permissions: [] as string[] });
@@ -47,8 +48,8 @@ const RolesPage: React.FC = () => {
       const res = await apiService.getRoles();
       setRoles(res.roles);
       if (editingRole?.id === roleId) setEditingRole(null);
-    } catch (err: any) {
-      addNotification('error', 'Error al eliminar rol', err?.message || 'No se pudo eliminar el rol.');
+    } catch (err) {
+      addNotification('error', 'Error al eliminar rol', (err as Error)?.message || 'No se pudo eliminar el rol.');
     } finally {
       setLoading(false);
     }

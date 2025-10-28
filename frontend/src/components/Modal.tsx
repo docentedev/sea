@@ -31,11 +31,11 @@ export const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50"
       onClick={closeOnBackdropClick ? onClose : undefined}
     >
-      <div 
+      <div
         className={`bg-gray-800 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-hidden ${className}`}
         onClick={(e) => e.stopPropagation()}
       >
@@ -58,7 +58,9 @@ export const Modal: React.FC<ModalProps> = ({
           </div>
         )}
         <div className="overflow-y-auto max-h-[calc(90vh-5rem)]">
-          {children}
+          <div className="p-6">
+            {children}
+          </div>
         </div>
       </div>
     </div>
